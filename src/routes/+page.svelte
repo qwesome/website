@@ -7,11 +7,13 @@
     <button on:click={() => window.location.href = '/mcserver'}>
       Minecraft Server
     </button>
-    <button>Beta Server</button>
-    <button 
-      on:click={() => window.location.href = 'http://studiobean.com:8099'}
-    >Notflix</button>
-    <button>Server Status</button>
+    <button on:click={() => window.location.href = '/mcbeta'}>
+      Beta Server
+    </button>
+    <button on:click={() => window.location.href = '/notflix'}>
+      Notflix
+    </button>
+    <button>Test</button>
     <button>Test</button>
     <button>Test</button>
   </div>
@@ -64,5 +66,6 @@
   }
   button:hover {
     background: linear-gradient(to bottom, #781461, #781461);
+    font-weight: bold;
   }
 </style>
