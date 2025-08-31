@@ -46,10 +46,10 @@
   }
 
   let images = [
-    '/src/carousel/mcserver/01.png',
-    '/src/carousel/mcserver/02.png',
-    '/src/carousel/mcserver/03.png',
-    '/src/carousel/mcserver/04.png'
+    '/carousel/mcserver/01.png',
+    '/carousel/mcserver/02.png',
+    '/carousel/mcserver/03.png',
+    '/carousel/mcserver/04.png'
   ];
   let current = 0;
 

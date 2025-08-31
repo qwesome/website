@@ -1,5 +1,5 @@
 <header class="page-header">
-  <img src="/src/lib/assets/notflix.png" alt="Notflix Logo" on:click={resetIframe}>
+  <img src="/static/notflix.png" alt="Notflix" on:click={resetIframe}>
 </header>
 
 <iframe src="http://studiobean.com:8099" class="full-page" bind:this={iframe}></iframe>
