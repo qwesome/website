@@ -28,7 +28,7 @@
   }
   :global(body) {
     zoom: 1.15;
-    background: url('/src/lib/assets/background.png') center center / cover no-repeat;
+    background: url('/background.png') center center / cover no-repeat;
     position: relative;
     min-height: 100vh;
   }

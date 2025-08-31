@@ -1,8 +1,8 @@
 <header class="page-header">
-  <img src="/static/assets/notflix.png" alt="Notflix" on:click={resetIframe}>
+  <img src="/notflix.png" alt="Notflix" on:click={resetIframe}>
 </header>
 
-<iframe src="https://studiobean.com:8920/" class="full-page" bind:this={iframe}></iframe>
+<iframe src="https://studiobean.com:8920/" allowfullscreen class="full-page" bind:this={iframe}></iframe>
 
 <script lang="ts">
   let iframe: HTMLIFrameElement;
