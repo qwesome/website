@@ -16,7 +16,7 @@
   </p>
 
   <div class="flex-row">
-    <p>This server is intended to have a slower progress rate, limiting features from in-game for specific times. Features integration with Simple Voice Chat, Xaero's maps, and more. This server is intended for friends and not for public connections, hosted in New Zealand from a home server. The seed is 2998251340611620110. To join on console (or as an alternative on any bedrock platform), add the user "qwesomeconnect" as an Xbox friend, and join their world.</p>
+    <p>This server is intended to have a slower progress rate, limiting features from in-game for specific times. Features integration with Simple Voice Chat, Xaero's maps, and more. <br><br> This server is intended for friends and not for public connections, hosted in New Zealand from a home server. The seed is 2998251340611620110. To join on console (or as an alternative on any bedrock platform), add the user "qwesomeconnect" as an Xbox friend, and join their world.</p>
 
     <div class="carousel">
       <button on:click={prevImage}>&lt;</button>
