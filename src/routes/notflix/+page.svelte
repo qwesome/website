@@ -2,7 +2,7 @@
   <img src="/static/notflix.png" alt="Notflix" on:click={resetIframe}>
 </header>
 
-<iframe src="http://studiobean.com:8099" class="full-page" bind:this={iframe}></iframe>
+<iframe src="https://studiobean.com:8920/" class="full-page" bind:this={iframe}></iframe>
 
 <script lang="ts">
   let iframe: HTMLIFrameElement;
