@@ -196,4 +196,8 @@ button:hover {
     color: #000000;
   }
 }
+.info-box {
+  background: rgba(220, 193, 248, 0.3);
+  color: #ffffff;
+}
 </style>
