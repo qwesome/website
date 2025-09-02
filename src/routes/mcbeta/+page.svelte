@@ -3,8 +3,7 @@
   <h1>Minecraft Beta 1.7.3 Server</h1>
 <div class="info-box">
     <p>
-    IP: <span id="server-ip">studiobean.com:8374</span>
-    <button class="copy-btn" on:click={copyToClipboard} aria-label="Copy to clipboard">Copy</button>
+    IP: studiobean.com:8374
     Version: Beta 1.7.3
   </p>
   <p><a href="https://eaglercraft.com/mc/b1.7.3?userscript=flameddogo99-eaglermobile.js">Touchscreen</a>  ~  <a href="https://eaglercraft.com/mc/b1.7.3">Play Online</a>  ~  <a href="/Eaglercraft_b1.7.3.html" download="Eaglercraft_b1.7.3.html">HTML Download</a></p>
@@ -12,31 +11,14 @@
     <p>This server is in the Beta 1.7.3 version of the game, accessible through the default Minecraft launcher via enabling the setting "Show historical versions of Minecraft: Java Edition in the Launcher". Using the JVM argument in the launcher of choice "-Dhttp.proxyHost=betacraft.uk -Dhttp.proxyPort=11705" allows you to see skins of users, or alternatively you can use the betacraft launcher. <br><br> Currently, you cannot join the server in the browser, but I am working on it.</p>
     <div class="carousel">
       <button on:click={prevImage}>&lt;</button>
-      <img src={images[current]} alt="Carousel Image">
+      <img src={images[current]} alt="Carousel">
       <button on:click={nextImage}>&gt;</button>
     </div>
   </div>
 </div>
 </div>
 
-{#if copied}
-  <div class="copied-overlay" key={overlayKey}>
-    Copied to clipboard!
-  </div>
-{/if}
-
 <script lang="ts">
-  let copied = false;
-  let overlayKey = 0;
-
-  function copyToClipboard() {
-    navigator.clipboard.writeText('studiobean.com:8374');
-    copied = false;
-    overlayKey += 1;
-    copied = true;
-    setTimeout(() => copied = false, 1500);
-  }
-
   let images = [
     '/carousel/mcbeta/01.png',
     '/carousel/mcbeta/02.png',
@@ -131,18 +113,6 @@
     align-items: center;    
     line-height: 1.5;
     min-height: 60vh;
-    .info-box h2, .info-box h3, .info-box p {
-      margin: 0.2rem 0;
-      padding: 0;
-      text-align: center;
-    }
-  }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    max-width: 400px;
-    margin: 2rem auto;
   }
   button {
     padding: 1.2rem;
@@ -201,4 +171,36 @@
     90% { opacity: 1; }
     100% { opacity: 0; }
   }
+@media (prefers-color-scheme: light) {
+  .grid button {
+  border: 2px solid rgb(30, 32, 37);
+  background: linear-gradient(to bottom, #ed99fd, #e94fd4);
+  color: #000000;
+}
+
+ button {
+  border: 2px solid rgb(30, 32, 37);
+  background: linear-gradient(to bottom, #ed99fd, #e94fd4);
+  color: #000000;
+}
+
+button:hover {
+  background: linear-gradient(to bottom, #c23cb0, #e94fd4);
+  font-weight: bold;
+}
+
+.grid button:hover {
+  background: linear-gradient(to bottom, #c23cb0, #e94fd4);
+  font-weight: bold;
+}
+:global(body) {
+  background: url('/background-inverted.png') center center / cover no-repeat;
+}
+.overlay {
+  background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgb(252, 243, 255) 100%);
+}
+  p {
+    color: #000000;
+  }
+}
 </style>

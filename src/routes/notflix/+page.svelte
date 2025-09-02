@@ -44,4 +44,22 @@
     height: calc(100vh - 75px);
     border: none;
   }
+  @media (prefers-color-scheme: light) {
+  .grid button {
+  border: 2px solid rgb(30, 32, 37);
+  background: linear-gradient(to bottom, #ed99fd, #e94fd4);
+  color: #000000;
+}
+
+.grid button:hover {
+  background: linear-gradient(to bottom, #c23cb0, #e94fd4);
+  font-weight: bold;
+}
+:global(body) {
+  background: url('/background-inverted.png') center center / cover no-repeat;
+}
+.overlay {
+  background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgb(252, 243, 255) 100%);
+}
+}
 </style>
