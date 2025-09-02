@@ -1,8 +1,8 @@
 <div class="overlay"></div>
 <div class="content">
   <h1>Tetris</h1>
-  <iframe title="Tetris" src="http://localhost:5173/backend/tetris
-  " width="800" height="600" style="border: none;"></iframe>
+  <iframe title="Tetris" src="/tetris.html"
+  width="800" height="600" style="border: ;"></iframe>
 </div>
 
 <style>
@@ -54,6 +54,13 @@
     background: linear-gradient(to bottom, #781461, #781461);
     font-weight: bold;
   }
+
+iframe {
+    border: 4px solid #DF11B2;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(240, 0, 188, 0.2);
+}
+
   @media (prefers-color-scheme: light) {
   .grid button {
   border: 2px solid rgb(30, 32, 37);
@@ -71,5 +78,11 @@
 .overlay {
   background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgb(252, 243, 255) 100%);
 }
+iframe {
+    border: 4px solid #f066d2;
+    border-radius: 8px;
+    box-shadow: 0 0 20px rgba(240, 0, 188, 0.2);
+}
+
 }
 </style>

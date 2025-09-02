@@ -7,7 +7,7 @@
     <a href="/mcserver"><button>Minecraft Server</button></a>
     <a href="/mcbeta"><button>Beta Server</button></a>
     <a href="/notflix"><button>Notflix</button></a>
-    <a href="/tetris"><button>Tetris (WIP)</button></a>
+    <a href="/tetris"><button>Tetris</button></a>
     <a href="/test2"><button>Test</button></a>
     <a href="/test3"><button>Test</button></a>
   </div>

@@ -1,11 +1,14 @@
 <script lang="ts">
-    import faviconDark from '/static/favicon.png';
-    import faviconLight from '/static/favicon-light.png';
+    import faviconDark from '/favicon.png';
+    import faviconLight from '/favicon-light.png';
     import "../app.css";
 
     let currentFavicon = faviconDark;
+    let showHomeButton = true;
 
     if (typeof window !== 'undefined') {
+        showHomeButton = !window.location.pathname.startsWith('/backend');
+
         const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
 
         const updateFavicon = (e: MediaQueryList | MediaQueryListEvent) => {
@@ -23,9 +26,12 @@
     <link rel="icon" href={currentFavicon} />
 </svelte:head>
 
+{#if showHomeButton}
 <a href="/" class="home-btn">
     <button>Home</button>
 </a>
+{/if}
+
 <slot />
 
 <style>
