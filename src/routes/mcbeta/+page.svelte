@@ -6,9 +6,9 @@
     IP: studiobean.com:8374
     Version: Beta 1.7.3
   </p>
-  <p><a href="https://eaglercraft.com/mc/b1.7.3?userscript=flameddogo99-eaglermobile.js">Touchscreen</a>  ~  <a href="https://eaglercraft.com/mc/b1.7.3">Play Online</a>  ~  <a href="/Eaglercraft_b1.7.3.html" download="Eaglercraft_b1.7.3.html">HTML Download</a></p>
+  <p><a href="/Eaglercraft.html">Play Online</a>  ~  <a href="/Eaglercraft.html" download="Eaglercraft_b1.7.3.html">HTML Download</a></p>
   <div class="flex-row">
-    <p>This server is in the Beta 1.7.3 version of the game, accessible through the default Minecraft launcher via enabling the setting "Show historical versions of Minecraft: Java Edition in the Launcher". Using the JVM argument in the launcher of choice "-Dhttp.proxyHost=betacraft.uk -Dhttp.proxyPort=11705" allows you to see skins of users, or alternatively you can use the betacraft launcher. <br><br> Currently, you cannot join the server in the browser, but I am working on it.</p>
+    <p>This server is in the Beta 1.7.3 version of the game, accessible through the default Minecraft launcher via enabling the setting "Show historical versions of Minecraft: Java Edition in the Launcher". Using the JVM argument in the launcher of choice "-Dhttp.proxyHost=betacraft.uk -Dhttp.proxyPort=11705" allows you to see skins of users, or alternatively you can use the betacraft launcher. <br><br> To join from Eaglercraft (web browser), join "ws://studiobean.com:8008/".</p>
     <div class="carousel">
       <button on:click={prevImage}>&lt;</button>
       <img src={images[current]} alt="Carousel">

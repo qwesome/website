@@ -1,7 +1,7 @@
 <div class="overlay"></div>
 <div class="content">
   <h1>Tetris</h1>
-  <iframe title="Tetris" src="/tetris.html"
+  <iframe title="Tetris" src="/tetris.html" autofocus="true"
   width="800" height="600" style="border: ;"></iframe>
 </div>
 
@@ -34,26 +34,6 @@
     transform: translate(-50%, -50%);
     z-index: 1;
   }
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    max-width: 400px;
-    margin: 2rem auto;
-  }
-  button {
-    padding: 1.2rem;
-    font-size: 1.1rem;
-    border-radius: 8px;
-    border: 2px solid rgb(180, 190, 214);
-    background: linear-gradient(to bottom, #781461, #220443);
-    cursor: pointer;
-    transition: background 0.3s;
-  }
-  button:hover {
-    background: linear-gradient(to bottom, #781461, #781461);
-    font-weight: bold;
-  }
 
 iframe {
     border: 4px solid #DF11B2;
@@ -62,16 +42,6 @@ iframe {
 }
 
   @media (prefers-color-scheme: light) {
-  .grid button {
-  border: 2px solid rgb(30, 32, 37);
-  background: linear-gradient(to bottom, #ed99fd, #e94fd4);
-  color: #000000;
-}
-
-.grid button:hover {
-  background: linear-gradient(to bottom, #c23cb0, #e94fd4);
-  font-weight: bold;
-}
 :global(body) {
   background: url('/background-inverted.png') center center / cover no-repeat;
 }
