@@ -126,58 +126,7 @@
   button:hover {
     background: linear-gradient(to bottom, #781461, #781461);
   }
-  .copy-btn {
-    padding: 0.2rem 0.4rem;
-    font-size: 1.1rem;
-    border-radius: 8px;
-    border: 2px solid rgb(180, 190, 214);
-    background: linear-gradient(to bottom, #781461, #220443);
-    color: #fff;
-    cursor: pointer;
-    vertical-align: middle;
-  }
-  .copy-btn:hover {
-    background: linear-gradient(to bottom, #781461, #9b1c6a);
-    font-weight: bold;
-  }
-  .copy-text {
-    font-size: 1.1rem;
-    user-select: none;
-    transition: font-weight 0.2s;
-    vertical-align: middle;
-  }
-  .copy-text:active {
-    font-weight: bold;
-  }
-  .copied-overlay {
-    position: fixed;
-    top: 10%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(34, 4, 67, 0.95);
-    color: #fff;
-    padding: 1rem 2rem;
-    border-radius: 12px;
-    font-size: 1.3rem;
-    font-weight: bold;
-    z-index: 9999;
-    box-shadow: 0 4px 32px rgba(0,0,0,0.3);
-    animation: fadeInOut 1.5s;
-    pointer-events: none;
-  }
-  @keyframes fadeInOut {
-    0% { opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { opacity: 0; }
-  }
 @media (prefers-color-scheme: light) {
-  .grid button {
-  border: 2px solid rgb(30, 32, 37);
-  background: linear-gradient(to bottom, #ed99fd, #e94fd4);
-  color: #000000;
-}
-
  button {
   border: 2px solid rgb(30, 32, 37);
   background: linear-gradient(to bottom, #ed99fd, #e94fd4);
@@ -189,10 +138,6 @@ button:hover {
   font-weight: bold;
 }
 
-.grid button:hover {
-  background: linear-gradient(to bottom, #c23cb0, #e94fd4);
-  font-weight: bold;
-}
 :global(body) {
   background: url('/background-inverted.png') center center / cover no-repeat;
 }

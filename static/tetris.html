@@ -132,10 +132,30 @@
             [[0, 1, 1], [1, 1, 0]]  // Z
         ];
 
-        const colors = [
-            '#FF0D72', '#0DC2FF', '#0DFF72',
-            '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'
+let colors = [
+    '#FF0D72', '#0DC2FF', '#0DFF72',
+    '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'
+];
+
+const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+function updateColors() {
+    if (mediaQuery.matches) {
+        colors = [
+            '#ffb3d5', '#a5f6fa', '#87ffc5',
+            '#d5a0e8', '#ffc98c', '#ffee8f', '#FFFFFF'
         ];
+    } else {
+        colors = [
+            '#FF0D72', '#0DC2FF', '#0DFF72',
+            '#F538FF', '#FF8E0D', '#FFE138', '#a5bdf2'
+        ];
+    }
+}
+
+updateColors();
+
+mediaQuery.addEventListener('change', updateColors);
+
 
         let currentPiece = null;
         let currentPiecePos = { x: 0, y: 0 };

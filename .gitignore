@@ -1,7 +1,7 @@
+# Node modules
 node_modules
-/static/Eaglercraft.html
 
-# Output
+# Build outputs
 .output
 .vercel
 .netlify
@@ -10,11 +10,11 @@ node_modules
 /build
 /dist
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
 
-# Env
+# Environment files
 .env
 .env.*
 !.env.example
@@ -23,3 +23,6 @@ Thumbs.db
 # Vite
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# Ignore Eaglercraft file
+/static/Eaglercraft.html
