@@ -1,5 +1,5 @@
 <header class="page-header">
-  <img src="/notflix.png" alt="Notflix" on:click={resetIframe}>
+  <img src="/notflix.png" alt="Notflix" on:click={refreshPage}>
 </header>
 
 <iframe src="https://studiobean.com:8920/" title="Notflix" allowfullscreen class="full-page" bind:this={iframe}></iframe>
@@ -7,10 +7,8 @@
 <script lang="ts">
   let iframe: HTMLIFrameElement;
 
-  function resetIframe() {
-    if (iframe) {
-      iframe.src = "http://studiobean.com:8099/web/#/home.html";
-    }
+  function refreshPage() {
+    location.reload();
   }
 </script>
 
@@ -44,22 +42,16 @@
     height: calc(100vh - 75px);
     border: none;
   }
-  @media (prefers-color-scheme: light) {
-  .grid button {
-  border: 2px solid rgb(30, 32, 37);
-  background: linear-gradient(to bottom, #ed99fd, #e94fd4);
-  color: #000000;
-}
 
-.grid button:hover {
-  background: linear-gradient(to bottom, #c23cb0, #e94fd4);
-  font-weight: bold;
-}
-:global(body) {
-  background: url('/background-inverted.png') center center / cover no-repeat;
-}
-.overlay {
-  background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgb(252, 243, 255) 100%);
-}
-}
+  @media (prefers-color-scheme: light) {
+    .grid button {
+      border: 2px solid rgb(30, 32, 37);
+      background: linear-gradient(to bottom, #ed99fd, #e94fd4);
+      color: #000000;
+    }
+
+    :global(body) {
+      background: url('/background-inverted.png') center center / cover no-repeat;
+    }
+  }
 </style>
