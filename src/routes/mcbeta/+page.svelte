@@ -17,7 +17,7 @@
         Java Edition in the Launcher". Using the JVM argument "-Dhttp.proxyHost=betacraft.uk
         -Dhttp.proxyPort=11705" allows you to see skins of users, or you can use the Betacraft
         launcher. <br><br>
-        To join from Eaglercraft (web browser), join "ws://studiobean.com:8008/".
+        To join from Eaglercraft (web browser), join "eagler.studiobean.com".
       </p>
       <div class="carousel">
         <button on:click={prevImage}>&lt;</button>
@@ -144,7 +144,6 @@ button {
   background: linear-gradient(to bottom, #781461, #220443);
   color: #ffffff;
   cursor: pointer;
-  transition: background 0.3s;
 }
 
 button:hover {
