@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+    <div class="wrapper">
+        <header>
+            <h2>PIANO</h2>
+            <div class="column volume-slider">
+                <span>Volume</span><input type="range" min="0" max="1" value="0.5" step="any"> 
+            </div>
+            <div class="column keys-checkbox">
+                <span>Show Keybinds</span><input type="checkbox" checked>
+            </div>
+        </header>
+
+        <ul class="piano-keys">
+            <li class="key white" data-key="1"><span>1</span></li>
+        <li class="key black" data-key="q"><span>q</span></li>
+        <li class="key white" data-key="2"><span>2</span></li>
+        <li class="key black" data-key="w"><span>w</span></li>
+        <li class="key white" data-key="3"><span>3</span></li>
+        <li class="key white" data-key="4"><span>4</span></li>
+        <li class="key black" data-key="r"><span>r</span></li>
+        <li class="key white" data-key="5"><span>5</span></li>
+        <li class="key black" data-key="t"><span>t</span></li>
+        <li class="key white" data-key="6"><span>6</span></li>
+        <li class="key black" data-key="y"><span>y</span></li>
+        <li class="key white" data-key="7"><span>7</span></li>
+        <li class="key white" data-key="8"><span>8</span></li>
+        <li class="key black" data-key="i"><span>i</span></li>
+        <li class="key white" data-key="9"><span>9</span></li>
+        <li class="key black" data-key="o"><span>o</span></li>
+        <li class="key white" data-key="0"><span>0</span></li>
+        </ul>
+    </div>
+    
+
+    <script>
+        const pianoKeys = document.querySelectorAll(".piano-keys .key"),
+volumeSlider = document.querySelector(".volume-slider input"),
+keysCheckbox = document.querySelector(".keys-checkbox input");
+
+
+let allKeys = [],
+audio = new Audio("tunes/a.wav");           //BY DEFAULT AUDIO SRC IS A TONE
+
+
+
+
+const playTune = (key) => {
+    const audio = new Audio(`tunes/${key}.wav`);
+    audio.volume = volumeSlider.value;
+    audio.play();
+
+    const clickedKey = document.querySelector(`[data-key="${key}"]`);
+    clickedKey.classList.add("active");
+
+    setTimeout(() => {
+        clickedKey.classList.remove("active");
+    }, 150);
+}
+
+
+
+
+
+
+
+pianoKeys.forEach(key => {
+
+    allKeys.push(key.dataset.key);
+
+    // CALLING PLAYTUNE FUNCTION BY PASSING THE DATASET VALUE AS ARGUMENT
+    key.addEventListener("click", () => playTune(key.dataset.key))
+
+});
+
+
+const showHideKeys = () => {
+    pianoKeys.forEach(key => key.classList.toggle("hide"))
+}
+
+
+const handleVolume = (e) => {
+    audio.volume = e.target.value;
+}
+
+
+const pressedKey = (e) => {
+    if(allKeys.includes(e.key)) playTune(e.key);
+}
+
+
+keysCheckbox.addEventListener("click", showHideKeys);
+volumeSlider.addEventListener("input", handleVolume);
+document.addEventListener("keydown", pressedKey);
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap');
+
+*{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body{
+    zoom: ;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: #1a1b1c;
+    padding: 0 10px;
+}
+@media (prefers-color-scheme: light) {
+    body {
+        background: #ffffff;
+    }
+}
+
+.wrapper{
+    border-radius: 20px;
+    background: #141414;
+    padding: 35px 40px;
+}
+
+.wrapper header{
+    color: #b2b2b2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+header h2{
+    font-size: 1.6rem;
+}
+
+header .column{
+    display: flex;
+    align-items: center;
+}
+
+header .column span{
+    font-weight: 500;
+    margin-right: 15px;
+    font-size: 1.19rem;
+}
+
+.volume-slider input{
+    outline: none;
+    accent-color: #fff;
+}
+
+.keys-checkbox input{
+    width: 60px;
+    height: 30px;
+    border-radius: 30px;
+    cursor: pointer;
+    appearance: none;
+    background: #4b4b4b;
+    position: relative;
+}
+
+.keys-checkbox input::before{
+    content: "";
+    position: absolute;
+    background: #8c8c8c;
+    height: 20px;
+    width: 20px;
+    border-radius: inherit;
+    top: 50%;
+    left: 5px;
+    transform: translateY(-50%);
+    transition: all 0.3s ease;
+}
+
+.keys-checkbox input:checked::before{
+    left: 35px;
+    background: #fff;
+}
+
+.piano-keys{
+    display: flex;
+    margin-top: 40px;
+}
+
+.piano-keys .key{
+    cursor: pointer;
+    list-style: none;
+    color: #a2a2a2;
+    text-transform: uppercase;
+    position: relative;
+    user-select: none;
+}
+
+.piano-keys .black{
+    width: 44px;
+    height: 140px;
+    z-index: 2;
+    margin: 0 -22px 0 -22px;
+    border-radius: 0 0 5px 5px;
+    background: linear-gradient(#333, #000);
+}
+
+.piano-keys .black.active{
+    box-shadow: inset -5px 5px 10px rgba(255,255,255,0.1);
+    background: linear-gradient(to bottom, #000 , #434343 );
+}
+
+.piano-keys .white{
+    width: 70px;
+    height: 230px;
+    border-radius: 8px;
+    border: 1px solid #000;
+    background: linear-gradient(#fff 96%, #eee 4%);
+}
+
+.piano-keys .white.active{
+    box-shadow: inset -5px 5px 20px rgba(0,0,0,0.2);
+    background: linear-gradient(to bottom, #fff 0%, #eee 100%);
+}
+
+.piano-keys span{
+    position: absolute;
+    bottom: 20px;
+    width: 100%;
+    text-align: center;
+    font-size: 1.13rem;
+}
+
+.piano-keys .key.hide span{
+    display: none;
+}
+
+@media screen and (max-width: 815px) {
+    .wrapper {
+      padding: 25px;
+    }
+    header {
+      flex-direction: column;
+    }
+    header :where(h2, .column) {
+      margin-bottom: 13px;
+    }
+    .volume-slider input {
+      max-width: 100px;
+    }
+    .piano-keys {
+      margin-top: 20px;
+    }
+    .piano-keys .key:where(:nth-child(9), :nth-child(10)) {
+      display: none;
+    }
+    .piano-keys .black {
+      height: 100px;
+      width: 40px;
+      margin: 0 -20px 0 -20px;
+    }
+    .piano-keys .white {
+      height: 180px;
+      width: 60px;
+    }
+  }
+
+
+@media screen and (max-width: 615px) {
+    .piano-keys .key:nth-child(13),
+    .piano-keys .key:nth-child(14),
+    .piano-keys .key:nth-child(15),
+    .piano-keys .key:nth-child(16),
+    .piano-keys .key :nth-child(17) {
+      display: none;
+    }
+    .piano-keys .white {
+      width: 50px;
+    }
+  }
+    </style>
+</body>
+</html>
