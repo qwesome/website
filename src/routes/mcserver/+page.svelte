@@ -147,7 +147,6 @@ button {
   border: 2px solid rgb(180, 190, 214);
   background: linear-gradient(to bottom, #781461, #220443);
   cursor: pointer;
-  transition: background 0.3s;
 }
 
 button:hover {

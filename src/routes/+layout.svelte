@@ -51,7 +51,6 @@
     background: linear-gradient(to bottom, #781461, #220443);
     color: #fff;
     cursor: pointer;
-    transition: background 0.3s;
 }
 
 .home-btn button:hover {

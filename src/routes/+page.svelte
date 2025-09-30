@@ -39,7 +39,6 @@
   background: linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgb(23,33,49) 100%);
 }
 
-/* This wrapper makes scaling consistent */
 .content-wrapper {
   position: fixed;
   inset: 0;
@@ -75,7 +74,7 @@
   background: linear-gradient(to bottom, #781461, #220443);
   color: #fff;
   cursor: pointer;
-  transition: background 0.3s, font-weight 0.3s;
+  transition: none;
 }
 
 .grid button:hover {
