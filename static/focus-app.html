@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Exam Feature Tester</title>
+  <style>
+    html, body {
+      overflow: hidden;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, sans-serif;
+    }
+
+    body {
+      background: url('/background.png') center center / cover no-repeat;
+      position: relative;
+      min-height: 100vh;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(0,0,0,0.75) 0%, rgb(23,33,49) 100%);
+    }
+
+    .content {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+      color: white;
+    }
+
+    .app {
+      background: rgba(27, 1, 54, 0.3);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      border: 2px solid rgb(180, 190, 214);
+      padding: 2rem;
+      width: min(90vw, 760px);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .status-row {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      justify-content: center;
+      width: 100%;
+      flex-wrap: wrap;
+    }
+
+    .status-box, .mouse-box {
+      margin: 0;
+      padding: 1rem;
+      border-radius: 8px;
+      background: rgba(200, 0, 50, 0.2);
+      border: 2px solid #ff4f4f;
+      transition: all 0.15s;
+      font-size: 1.05rem;
+      line-height: 1.6;
+      min-width: 240px;
+      text-align: left;
+    }
+
+    .status-box.active {
+      background: rgba(0, 200, 100, 0.2);
+      border-color: #00ff7f;
+    }
+    .status-box.idle {
+      background: rgba(200, 197, 0, 0.2);
+      border-color: #e5ff70;
+    }
+
+    .mouse-box.detected {
+      background: rgba(0, 200, 100, 0.2);
+      border-color: #00ff7f;
+    }
+
+    .label {
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+      display: block;
+    }
+
+    .coords {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, "Roboto Mono", "Helvetica Neue", monospace;
+      font-size: 0.95rem;
+      margin-top: 0.6rem;
+      color: #fff;
+    }
+
+    .coords .value {
+      font-weight: 700;
+    }
+
+    .ua-box {
+      margin-top: 0.5rem;
+      padding: 0.9rem 1rem;
+      border-radius: 8px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
+      width: 100%;
+      max-width: 720px;
+      text-align: left;
+      font-size: 0.95rem;
+      color: #fff;
+    }
+
+    /* UA formatting: each item on its own row, label left, value right */
+    .ua-row { display: flex; flex-direction: column; gap: 0.35rem; }
+    .ua-item { display:flex; justify-content:space-between; align-items:center; padding: 0 0.25rem; }
+    .ua-label { font-weight:600; color:inherit; }
+    .ua-value { color:inherit; font-weight:500; margin-left: 1rem; text-align:right; min-width: 220px; }
+
+    @media (prefers-color-scheme: light) {
+      .overlay {
+        background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgb(252, 243, 255) 100%);
+      }
+
+      .content { color: black; }
+
+      .status-box, .mouse-box { color: #000; }
+      .ua-box { color: #000; border-color: rgba(0,0,0,0.08); background: rgba(0,0,0,0.02); }
+    }
+  </style>
+</head>
+<body>
+  <div class="overlay"></div>
+  <div class="content">
+    <h1>Exam Feature Tester</h1>
+    <div class="app">
+      <h3>This page will detect when you leave the window or tab</h3>
+
+      <div class="status-row">
+        <div class="status-box idle" id="statusBox">
+          <span class="label">Window Status:</span>
+          <div>State: <span id="status">Click to start</span></div>
+          <div style="margin-top:.5rem">Times Left: <span id="visited">0</span></div>
+        </div>
+
+        <div class="mouse-box" id="mouseBox">
+          <span class="label">Mouse:</span>
+          <div id="mouseStatus">Not Detected</div>
+          <div class="coords">
+            X: <span id="mouseX" class="value">-</span> &nbsp; Y: <span id="mouseY" class="value">-</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="ua-box" id="uaBox" aria-live="polite">
+        <div class="ua-row" id="uaRows">
+          <div class="ua-item"><span class="ua-label">Screen Size:</span><span id="screenSize" class="ua-value">-</span></div>
+          <div class="ua-item"><span class="ua-label">Browser:</span><span id="browser" class="ua-value">-</span></div>
+          <div class="ua-item"><span class="ua-label">OS:</span><span id="os" class="ua-value">-</span></div>
+          <div class="ua-item"><span class="ua-label">Location:</span><span id="location" class="ua-value">Loading…</span></div>
+          <div class="ua-item"><span class="ua-label">Platform:</span><span id="platform" class="ua-value">-</span></div>
+          <div class="ua-item"><span class="ua-label">Languages:</span><span id="languages" class="ua-value">-</span></div>
+          <div class="ua-item"><span class="ua-label">Cores:</span><span id="cores" class="ua-value">-</span></div>
+          <div class="ua-item"><span class="ua-label">Cookies Enabled:</span><span id="cookies" class="ua-value">-</span></div>
+          <div class="ua-item"><span class="ua-label">Timezone:</span><span id="timezone" class="ua-value">-</span></div>
+        </div>
+      </div>
+      <p>NZQA / NCEA Exams requires Google Chrome, at least 1366 x 768 display size, Windows/MacOS/ChromeOS, and the location to be New Zealand, Australia or the Pacific islands. <n>
+        <br>
+        These exams do not specifically check the mouse cursor position, only the Window Status.
+        <br>
+        To test if you meet the requirements, check <a href="https://www.nzqa.govt.nz/ncea/ncea-exams-and-portfolios/external/device-readiness-check/">here</a>
+      </n>
+    </p>
+    </div>
+  </div>
+
+  <script>
+    // state
+    let visited = 0;
+    let started = false;           // remain false until first activation
+    let isOnFocus = false;
+
+    // DOM refs
+    const statusBox = document.getElementById('statusBox');
+    const statusText = document.getElementById('status');
+    const visitedText = document.getElementById('visited');
+
+    const mouseBox = document.getElementById('mouseBox');
+    const mouseStatusText = document.getElementById('mouseStatus');
+    const mouseXText = document.getElementById('mouseX');
+    const mouseYText = document.getElementById('mouseY');
+
+    const screenSizeText = document.getElementById('screenSize');
+    const browserText = document.getElementById('browser');
+    const osText = document.getElementById('os');
+    const platformText = document.getElementById('platform');
+    const languagesText = document.getElementById('languages');
+    const coresText = document.getElementById('cores');
+    const cookiesText = document.getElementById('cookies');
+    const timezoneText = document.getElementById('timezone');
+    const locationText = document.getElementById('location');
+
+    // mouse detection
+    let mouseDetected = false;
+    let mouseX = null;
+    let mouseY = null;
+    let mouseTimer = null;
+    const MOUSE_TIMEOUT = 1500;
+
+    function updateUI() {
+      if (!started) {
+        statusText.textContent = 'Click to start';
+        statusBox.classList.add('idle');
+        statusBox.classList.remove('active');
+      } else {
+        statusText.textContent = isOnFocus ? 'Active' : 'Inactive';
+        statusBox.classList.toggle('active', isOnFocus);
+        statusBox.classList.remove('idle');
+      }
+
+      visitedText.textContent = visited;
+
+      mouseStatusText.textContent = mouseDetected ? 'Detected' : 'Not Detected';
+      mouseXText.textContent = mouseX !== null ? mouseX : '-';
+      mouseYText.textContent = mouseY !== null ? mouseY : '-';
+      mouseBox.classList.toggle('detected', mouseDetected);
+    }
+
+    // Start monitoring when first user interaction OR first focus event occurs.
+    function startMonitoringOnFirstActivity() {
+      if (started) return;
+      started = true;
+      // initialize current focus state but DO NOT increment visited
+      isOnFocus = document.hasFocus() && !document.hidden;
+      updateUI();
+      // remove click listener since we've started
+      document.removeEventListener('click', startMonitoringOnFirstActivity);
+      document.removeEventListener('keydown', startMonitoringOnFirstActivity);
+    }
+
+    // Focus / visibility handlers
+    function handleVisibilityChange() {
+      const isVisible = !document.hidden;
+      const hasFocus = document.hasFocus();
+      const newFocusState = isVisible && hasFocus;
+
+      if (!started && newFocusState) {
+        // first activation -> start monitoring, do not count as a return
+        started = true;
+        isOnFocus = true;
+        updateUI();
+        document.removeEventListener('click', startMonitoringOnFirstActivity);
+        document.removeEventListener('keydown', startMonitoringOnFirstActivity);
+        return;
+      }
+
+      if (!started) return;
+
+      if (!isOnFocus && newFocusState) visited++;
+      isOnFocus = newFocusState;
+      updateUI();
+    }
+
+    function handleWindowFocus() {
+      if (!started) {
+        // first focus -> start monitoring
+        started = true;
+        isOnFocus = true;
+        updateUI();
+        document.removeEventListener('click', startMonitoringOnFirstActivity);
+        document.removeEventListener('keydown', startMonitoringOnFirstActivity);
+        return;
+      }
+      if (!isOnFocus) visited++;
+      isOnFocus = true;
+      updateUI();
+    }
+
+    function handleWindowBlur() {
+      if (!started) {
+        isOnFocus = false;
+        updateUI();
+        return;
+      }
+      isOnFocus = false;
+      updateUI();
+    }
+
+    // mouse handlers
+    function handlePointerMove(e) {
+      mouseX = Math.round(e.clientX);
+      mouseY = Math.round(e.clientY);
+      mouseDetected = true;
+      updateUI();
+
+      if (mouseTimer) clearTimeout(mouseTimer);
+      mouseTimer = setTimeout(() => {
+        mouseDetected = false;
+        updateUI();
+        mouseTimer = null;
+      }, MOUSE_TIMEOUT);
+    }
+
+    // UA detection helpers - return raw tokens where used
+    function detectBrowser(ua) {
+      const m = ua.match(/(Edg\/[^\s]+|Edge\/[^\s]+|OPR\/[^\s]+|Opera\/[^\s]+|Chrome\/[^\s]+|Chromium\/[^\s]+|Firefox\/[^\s]+|Safari\/[^\s]+)/i);
+      return (m && m[0]) ? m[0] : ua;
+    }
+
+    function detectOS(ua) {
+      const m = ua.match(/(Windows NT \d+(\.\d+)?|Android \d+(\.\d+)*|Android|iPhone OS \d+(_\d+)*|iPad; CPU OS \d+(_\d+)*|Mac OS X \d+(_\d+)*|Macintosh|Linux|CrOS)/i);
+      return (m && m[0]) ? m[0] : ua;
+    }
+
+    function setUAinfo() {
+      try {
+        const ua = navigator.userAgent || '';
+        const screenW = window.screen?.width || window.innerWidth;
+        const screenH = window.screen?.height || window.innerHeight;
+        screenSizeText.textContent = `${screenW} x ${screenH}`;
+        browserText.textContent = detectBrowser(ua);
+        osText.textContent = detectOS(ua);
+        platformText.textContent = navigator.platform || 'Unknown';
+        languagesText.textContent = (navigator.languages && navigator.languages.join(', ')) || navigator.language || 'Unknown';
+        coresText.textContent = navigator.hardwareConcurrency || 'Unknown';
+        cookiesText.textContent = navigator.cookieEnabled ? 'Yes' : 'No';
+        timezoneText.textContent = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+      } catch (e) {
+        // ignore
+      }
+    }
+
+    // fetch rough location from public IP
+    async function fetchLocation() {
+      locationText.textContent = 'Loading…';
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        if (!res.ok) throw new Error('geo fetch failed');
+        const data = await res.json();
+        const parts = [];
+        if (data.city) parts.push(data.city);
+        if (data.region) parts.push(data.region);
+        if (data.country_name) parts.push(data.country_name);
+        const loc = parts.length ? parts.join(', ') : (data.ip ? data.ip : 'Unknown');
+        locationText.textContent = loc;
+      } catch (e) {
+        locationText.textContent = 'Unknown';
+      }
+    }
+
+    // Attach listeners
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleWindowFocus);
+    window.addEventListener('blur', handleWindowBlur);
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: true });
+    window.addEventListener('touchmove', (e) => {
+      if (e.touches && e.touches[0]) handlePointerMove(e.touches[0]);
+    }, { passive: true });
+
+    window.addEventListener('mouseout', (e) => {
+      if (!e.relatedTarget) {
+        if (mouseTimer) clearTimeout(mouseTimer);
+        mouseDetected = false;
+        updateUI();
+      }
+    });
+
+    // start on first user click or key press too (covers already-focused cases)
+    document.addEventListener('click', startMonitoringOnFirstActivity);
+    document.addEventListener('keydown', startMonitoringOnFirstActivity, { once: true });
+
+    // initialize UA info & location
+    setUAinfo();
+    fetchLocation();
+
+    // keep screen size updated
+    setInterval(() => {
+      try {
+        const screenW = window.screen?.width || window.innerWidth;
+        const screenH = window.screen?.height || window.innerHeight;
+        screenSizeText.textContent = `${screenW} x ${screenH}`;
+      } catch (e) {}
+    }, 1000);
+
+    // initial UI
+    updateUI();
+  </script>
+</body>
+</html>

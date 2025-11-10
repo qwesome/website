@@ -13,6 +13,12 @@
 </script>
 
 <style>
+
+:global(body) {
+  background: url('/background.png') center center / cover no-repeat;
+  position: relative;
+  min-height: 100vh;
+}
   .page-header {
     position: fixed;
     top: 0;

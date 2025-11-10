@@ -10,7 +10,7 @@
       <a href="/notflix"><button>Notflix</button></a>
       <a href="/tetris"><button>Tetris</button></a>
       <a href="/piano"><button>Piano</button></a>
-      <a href="/test"><button>Test</button></a>
+      <a href="/cheats"><button>Exam Feature Tester</button></a>
     </div>
   </div>
 </div>
