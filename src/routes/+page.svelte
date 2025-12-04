@@ -6,7 +6,7 @@
 
     <div class="grid">
       <a href="/mcserver"><button>Minecraft Server</button></a>
-      <a href="/mcbeta"><button>Beta Server</button></a>
+      <a href="/mcbeta"><button>Eagler Server</button></a>
       <a href="/notflix"><button>Notflix</button></a>
       <a href="/tetris"><button>Tetris</button></a>
       <a href="/piano"><button>Piano</button></a>

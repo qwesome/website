@@ -1,23 +1,22 @@
 <div class="overlay"></div>
 <div class="content">
-  <h1>Minecraft Beta 1.7.3 Server</h1>
+  <h1>Minecraft 1.8.8 Server</h1>
   <div class="info-box">
     <p>
-      IP: studiobean.com:8374<br>
-      Version: Beta 1.7.3
+      IP: eagler.studiobean.com or studiobean.com:8374<br>
+      Version: 1.8.8
     </p>
     <p>
-      <a href="/Eaglercraft.html">Play Online</a> ~
-      <a href="/Eaglercraft.html" download="Eaglercraft_b1.7.3.html">HTML Download</a>
+      <a href="http://studiobean.com/Eaglercraft.html" target="_blank" id="play">Play Online</a> ~ 
+      <a href="/Eaglercraft.html" download="Eaglercraft_1.8.8.html">HTML Download</a>
     </p>
     <div class="flex-row">
       <p>
-        This server is in the Beta 1.7.3 version of the game, accessible through the default
-        Minecraft launcher via enabling the setting "Show historical versions of Minecraft:
-        Java Edition in the Launcher". Using the JVM argument "-Dhttp.proxyHost=betacraft.uk
-        -Dhttp.proxyPort=11705" allows you to see skins of users, or you can use the Betacraft
-        launcher. <br><br>
+        This server is in the 1.8.8 version of the game, accessible through the default
+        Minecraft launcher.<br><br>
         To join from Eaglercraft (web browser), join "eagler.studiobean.com".
+        <br><br>
+        This server used to be on beta 1.7.3, that's why you might see a lot of stuff still saying beta, and having outdated images.
       </p>
       <div class="carousel">
         <button on:click={prevImage}>&lt;</button>
@@ -45,6 +44,7 @@
     current = (current - 1 + images.length) % images.length;
   }
 </script>
+
 
 <style>
 :global(html), :global(body) {
