@@ -11,6 +11,7 @@
       <a href="/tetris"><button>Tetris</button></a>
       <a href="/piano"><button>Piano</button></a>
       <a href="/cheats"><button>Exam Feature Tester</button></a>
+      <a href="/sm64"><button>Super Mario 64</button></a>
     </div>
   </div>
 </div>
