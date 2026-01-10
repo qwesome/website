@@ -12,6 +12,7 @@
       <a href="/piano"><button>Piano</button></a>
       <a href="/cheats"><button>Exam Feature Tester</button></a>
       <a href="/sm64"><button>Super Mario 64</button></a>
+      <a href="/blockblast"><button>Block Blast</button></a>
     </div>
   </div>
 </div>
