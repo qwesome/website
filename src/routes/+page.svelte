@@ -3,7 +3,6 @@
   <div class="content">
     <h1>Orson's Project Hub</h1>
     <div class="grid">
-      <a href="/mcserver"><button>Minecraft Server</button></a>
       <a href="/mcbeta"><button>Eagler Server</button></a>
       <a href="/notflix"><button>Notflix</button></a>
       <a href="/tetris"><button>Tetris</button></a>
