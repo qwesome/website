@@ -7,10 +7,10 @@
       <a href="/mcbeta"><button>Eagler Server</button></a>
       <a href="/notflix"><button>Notflix</button></a>
       <a href="/tetris"><button>Tetris</button></a>
+      <a href="/blockblast"><button>Block Blast</button></a>
       <a href="/piano"><button>Piano</button></a>
       <a href="/cheats"><button>Exam Feature Tester</button></a>
       <a href="/retro"><button>Retro Games</button></a>
-      <a href="/blockblast"><button>Block Blast</button></a>
     </div>
   </div>
 </div>
