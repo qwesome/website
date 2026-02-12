@@ -1,8 +1,8 @@
 <header class="page-header">
-  <img src="/sm64.png" alt="SM64" on:click={refreshPage}>
+  <img src="/donkeykong.png" alt="Donkey Kong" on:click={refreshPage}>
 </header>
 
-<iframe src="/sm64.html" title="SM64" allowfullscreen class="full-page" bind:this={iframe} tabindex="0"
+<iframe src="/donkeykong.html" title="Donkey Kong" allowfullscreen class="full-page" bind:this={iframe} tabindex="0"
   on:load={() => { iframe?.focus(); iframe?.contentWindow?.postMessage('focus-game', '*'); }}
   on:focus={() => iframe?.contentWindow?.postMessage('focus-game', '*')}
 ></iframe>

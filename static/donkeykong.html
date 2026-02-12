@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Donkey Kong</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        height: 100%;
+        background: black;
+        overflow: hidden;
+    }
+
+    #game {
+        width: 100vw;
+        height: 100vh;
+    }
+</style>
+</head>
+<body>
+
+<div id="game"></div>
+
+<script>
+    // Required EmulatorJS configuration
+    EJS_player = '#game';
+    EJS_core = 'nes';
+    EJS_gameUrl = '/static/donkeykong.nes';
+    EJS_pathtodata = 'https://cdn.emulatorjs.org/stable/data/';
+
+    // Optional settings
+    EJS_startOnLoaded = true;
+</script>
+
+<script src="https://cdn.emulatorjs.org/stable/data/loader.js"></script>
+
+</body>
+</html>

@@ -26,3 +26,15 @@ vite.config.ts.timestamp-*
 
 # Ignore Eaglercraft file
 /static/Eaglercraft.html
+
+# anti piracy is what we all about
+*.nds
+*.gba
+*.gb
+*.gbc
+*.n64
+*.z64
+*.smc
+*.sfc
+*.bin
+*.iso
