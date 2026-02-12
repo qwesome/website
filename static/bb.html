@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        :root {
+            --tetris-cyan: #df11b2;
+            --bg-dark: #1a1b1c;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: #E1E1E1;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .pieces-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        canvas {
+            border: 4px solid var(--tetris-cyan);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(240, 0, 188, 0.2);
+        }
+
+        .control-item {
+            margin: 8px 0;
+        }
+
+        @media (prefers-color-scheme: light) {
+        :root {
+            --tetris-cyan: #f066d2;
+            --bg-dark: #ffffff;
+        }
+        body {
+            color: #000000;
+        }
+        canvas {
+            border: 4px solid var(--tetris-cyan);
+            border-radius: 8px;
+            box-shadow: 0 0 20px rgba(240, 0, 188, 0.2);
+        }
+    }
+
+    </style>
+</head>
+<body>
+    <div id="stats">
+        <div id="score">Score: 0</div>
+        <div id="level">Level: 1</div>
+    </div>
+
+    <div class="game-container">
+        <canvas id="tetris" width="320" height="320"></canvas>
+        <div class="pieces-container">
+            <canvas id="pieces" width="320" height="100"></canvas>
+        </div>    </div>
+
+    <script>
+        const canvas = document.getElementById('tetris');
+        const context = canvas.getContext('2d');
+        const piecesCanvas = document.getElementById('pieces');
+        const piecesContext = piecesCanvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const levelElement = document.getElementById('level');
+        const mainBlockSize = 40; // doubled size for main board only
+        const cols = canvas.width / mainBlockSize;
+        const rows = canvas.height / mainBlockSize;
+        let score = 0;
+        let level = 1;
+        let linesCleared = 0;
+        let canHold = true;
+
+        const board = Array(rows).fill().map(() => Array(cols).fill(0));
+
+        const shapes = [
+            [[1, 1, 1], [1, 1, 1], [1, 1, 1]], // 3x3 square
+            [[1, 1], [1, 1]], // 2x2 square
+            [[1]], // 1x1 square
+            [[1, 1, 1, 1, 1]], // 5 line
+            [[1, 1, 1, 1]], // 4 line
+            [[1, 1, 1]], // 3 line
+            [[1, 1]], // 2 line
+            [[0, 1], [1, 0]], // 2 diagonal - up right
+            [[1, 0], [0, 1]], // 2 diagonal - up left
+            [[0, 0, 1], [0, 1, 0], [1, 0, 0]], // 3 diagonal - up right
+            [[1, 0, 0], [0, 1, 0], [0, 0, 1]], // 3 diagonal - up left
+            [[1, 1], [1, 0]], // 2x2 r shape
+            [[1, 1], [0, 1]], // 2x2 L shape
+            [[1, 1, 1], [1, 1, 1]], // 3x2 block
+            [[1, 1], [1, 0], [1, 0]], // 2x3 r shape
+            [[1, 1], [0, 1], [0, 1]], // 2x3 L shape
+            [[0, 1, 1], [1, 1, 0]], // zigzag right
+            [[1, 1, 0], [0, 1, 1]], // zigzag left
+            [[1, 1, 1], [0, 1, 0]], // T shape
+            [[1, 0, 1], [0, 1, 0]], // T shape
+            [[1, 1, 1], [0, 0, 1], [0, 0, 1]], // corner right
+            [[1, 1, 1], [1, 0, 0], [1, 0, 0]], // corner left
+        ];
+
+let colors = [
+    '#FF0D72', '#0DC2FF', '#0DFF72',
+    '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'
+];
+
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+function updateColors() {
+    if (mediaQuery.matches) {
+        colors = [
+            '#ffb3d5', '#a5f6fa', '#87ffc5',
+            '#d5a0e8', '#ffc98c', '#ffee8f', '#a5bdf2'
+        ];
+    } else {
+        colors = [
+            '#FF0D72', '#0DC2FF', '#0DFF72',
+            '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'
+        ];
+    }
+}
+
+updateColors();
+
+mediaQuery.addEventListener('change', updateColors);
+
+
+        let currentPiece = null;
+        let currentPiecePos = { x: 0, y: 0 };
+        let currentPlaced = false; // whether the current piece has been placed on the board
+        let currentColor = '';
+        let currentPieceIndex = 0;
+        const PREVIEW_COUNT = 3;
+        let nextQueue = [];
+        let holdPiece = null;
+        let holdColor = '';
+        let holdPieceIndex = -1;
+
+        function isPlacementValid(pos = currentPiecePos, piece = currentPiece) {
+            if (!piece) return false;
+            for (let y = 0; y < piece.length; y++) {
+                for (let x = 0; x < piece[y].length; x++) {
+                    if (!piece[y][x]) continue;
+                    const boardX = pos.x + x;
+                    const boardY = pos.y + y;
+                    if (boardX < 0 || boardX >= cols || boardY < 0 || boardY >= rows) return false;
+                    if (board[boardY][boardX]) return false;
+                }
+            }
+            return true;
+        }
+
+        // helpers: clone and rotate piece matrices
+        function clonePiece(p) {
+            return p.map(row => row.slice());
+        }
+
+        function rotate90(p) {
+            const h = p.length;
+            const w = p[0].length;
+            const out = Array.from({ length: w }, () => Array(h).fill(0));
+            for (let i = 0; i < h; i++) {
+                for (let j = 0; j < w; j++) {
+                    out[j][h - 1 - i] = p[i][j];
+                }
+            }
+            return out;
+        }
+
+        function rotateTimes(p, times) {
+            let r = clonePiece(p);
+            for (let i = 0; i < (times % 4); i++) r = rotate90(r);
+            return r;
+        }
+
+        function createPiece() {
+
+            // Only fill queue if completely empty
+            if (nextQueue.length === 0) {
+                for (let i = 0; i < PREVIEW_COUNT; i++) {
+                    const idx = Math.floor(Math.random() * shapes.length);
+                    const base = shapes[idx];
+                    const rot = Math.floor(Math.random() * 4);
+                    nextQueue.push({ piece: rotateTimes(base, rot), color: colors[Math.floor(Math.random() * colors.length)], index: idx });
+                }
+            }
+
+            // take the first queued piece as current
+            const entry = nextQueue.shift();
+            currentPiece = clonePiece(entry.piece);
+            currentColor = entry.color;
+            currentPieceIndex = entry.index;
+            currentPlaced = false;
+
+            // center current piece horizontally and vertically
+            currentPiecePos = {
+                x: Math.max(0, Math.floor((cols - currentPiece[0].length) / 2)),
+                y: Math.max(0, Math.floor((rows - currentPiece.length) / 2))
+            };
+
+            canHold = true;
+            drawPieces();
+        }
+
+        function drawPiece(context, piece, color, offsetX, offsetY, blockSize) {
+            context.fillStyle = color;
+            piece.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        context.fillRect(
+                            offsetX + x * blockSize,
+                            offsetY + y * blockSize,
+                            blockSize - 1,
+                            blockSize - 1
+                        );
+                    }
+                });
+            });
+        }
+
+        function drawPieces() {
+            piecesContext.fillStyle = '#000';
+            piecesContext.fillRect(0, 0, piecesCanvas.width, piecesCanvas.height);
+
+            const slotCount = 1 + nextQueue.length; // current piece + queued next pieces
+            const slotWidth = Math.floor(piecesCanvas.width / slotCount);
+            const blockSize = 20;
+
+            // draw current piece in slot 0
+            if (currentPiece) {
+                const piece = currentPiece;
+                const color = currentColor;
+                const pieceWidth = piece[0].length * blockSize;
+                const pieceHeight = piece.length * blockSize;
+                const offsetX = 0 * slotWidth + Math.max(0, Math.floor((slotWidth - pieceWidth) / 2));
+                const offsetY = Math.max(0, Math.floor((piecesCanvas.height - pieceHeight) / 2));
+                drawPiece(piecesContext, piece, color, offsetX, offsetY, blockSize);
+            }
+
+            // draw queued pieces in subsequent slots
+            for (let i = 0; i < nextQueue.length; i++) {
+                const entry = nextQueue[i];
+                if (!entry) continue;
+                const piece = entry.piece;
+                const color = entry.color;
+                const pieceWidth = piece[0].length * blockSize;
+                const pieceHeight = piece.length * blockSize;
+                const offsetX = (i + 1) * slotWidth + Math.max(0, Math.floor((slotWidth - pieceWidth) / 2));
+                const offsetY = Math.max(0, Math.floor((piecesCanvas.height - pieceHeight) / 2));
+                drawPiece(piecesContext, piece, color, offsetX, offsetY, blockSize);
+            }
+        }
+
+        function collide(piece = currentPiece, pos = currentPiecePos) {
+            for (let y = 0; y < piece.length; y++) {
+                for (let x = 0; x < piece[y].length; x++) {
+                    if (piece[y][x]) {
+                        const boardX = pos.x + x;
+                        const boardY = pos.y + y;
+
+                        if (boardX < 0 || boardX >= cols ||
+                            boardY >= rows ||
+                            (boardY >= 0 && board[boardY][boardX])) {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+
+        // no rotate() function: rotation happens randomly on spawn
+
+        function merge() {
+            currentPiece.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        const boardY = currentPiecePos.y + y;
+                        if (boardY >= 0) {
+                            board[boardY][currentPiecePos.x + x] = currentColor;
+                        }
+                    }
+                });
+            });
+        }
+
+        // attempt to place the current piece at its current position
+        function placeCurrentPiece() {
+            // check bounds and emptiness
+            for (let y = 0; y < currentPiece.length; y++) {
+                for (let x = 0; x < currentPiece[y].length; x++) {
+                    if (!currentPiece[y][x]) continue;
+                    const boardX = currentPiecePos.x + x;
+                    const boardY = currentPiecePos.y + y;
+                    if (boardX < 0 || boardX >= cols || boardY < 0 || boardY >= rows) {
+                        return false; // out of bounds
+                    }
+                    if (board[boardY][boardX]) return false; // occupied
+                }
+            }
+            // merge and finalize placement
+            merge();
+            clearLines();
+            currentPlaced = true;
+            // spawn next
+            createPiece();
+            return true;
+        }
+
+        function clearLines() {
+            let lines = 0;
+
+            // clear full rows WITHOUT shifting rows down: just zero them
+            for (let y = 0; y < rows; y++) {
+                let full = true;
+                for (let x = 0; x < cols; x++) {
+                    if (!board[y][x]) { full = false; break; }
+                }
+                if (full) {
+                    board[y].fill(0);
+                    lines++;
+                }
+            }
+
+            // clear full columns (vertical clearing)
+            for (let x = 0; x < cols; x++) {
+                let full = true;
+                for (let y = 0; y < rows; y++) {
+                    if (!board[y][x]) { full = false; break; }
+                }
+                if (full) {
+                    for (let y = 0; y < rows; y++) board[y][x] = 0;
+                    lines++;
+                }
+            }
+
+            if (lines > 0) {
+                linesCleared += lines;
+                score += lines * 100 * level;
+                scoreElement.textContent = `Score: ${score}`;
+
+                const newLevel = Math.floor(linesCleared / 10) + 1;
+                if (newLevel !== level) {
+                    level = newLevel;
+                    levelElement.textContent = `Level: ${level}`;
+                }
+            }
+        }
+
+        function draw() {
+            context.fillStyle = '#000';
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
+            board.forEach((row, y) => {
+                row.forEach((value, x) => {
+                    if (value) {
+                        context.fillStyle = value;
+                        context.fillRect(x * mainBlockSize, y * mainBlockSize, mainBlockSize - 1, mainBlockSize - 1);
+                    }
+                });
+            });
+
+            if (currentPiece) {
+                // render unplaced pieces with low opacity and allow overlapping visually
+                context.save();
+                context.globalAlpha = currentPlaced ? 1 : 0.35;
+                const valid = isPlacementValid();
+                const outlineColor = valid ? 'rgba(255,255,255,0.95)' : '#ff4444';
+
+                currentPiece.forEach((row, y) => {
+                    row.forEach((value, x) => {
+                        if (value) {
+                            const px = (currentPiecePos.x + x) * mainBlockSize;
+                            const py = (currentPiecePos.y + y) * mainBlockSize;
+                            // fill
+                            context.fillStyle = currentColor;
+                            context.fillRect(px, py, mainBlockSize - 1, mainBlockSize - 1);
+                            // bold outline for contrast (white when valid, red when invalid)
+                            context.lineWidth = 3;
+                            context.strokeStyle = outlineColor;
+                            context.strokeRect(px + 0.5, py + 0.5, mainBlockSize - 2, mainBlockSize - 2);
+                        }
+                    });
+                });
+
+                context.restore();
+            }
+        }
+
+        let lastTime = 0;
+
+        function update(time = 0) {
+            // no gravity: user moves and places pieces manually
+            lastTime = time;
+            draw();
+            requestAnimationFrame(update);
+        }
+
+        document.addEventListener('keydown', event => {
+            if (!currentPiece) return;
+
+            switch (event.keyCode) {
+                case 37: // left
+                case 65: // A
+                    currentPiecePos.x = Math.max(0, currentPiecePos.x - 1);
+                    // ensure within horizontal bounds
+                    currentPiecePos.x = Math.min(currentPiecePos.x, cols - currentPiece[0].length);
+                    break;
+                case 39: // right
+                case 68: // D
+                    currentPiecePos.x = Math.min(cols - currentPiece[0].length, currentPiecePos.x + 1);
+                    currentPiecePos.x = Math.max(0, currentPiecePos.x);
+                    break;
+                case 38: // up -> move up
+                case 87: // W
+                    currentPiecePos.y = Math.max(0, currentPiecePos.y - 1);
+                    break;
+                case 40: // down -> move down
+                case 83: // S
+                    currentPiecePos.y = Math.min(rows - currentPiece.length, currentPiecePos.y + 1);
+                    break;
+                case 32: // space -> try placing piece
+                    placeCurrentPiece();
+                    break;
+            }
+        });
+
+        createPiece();
+        update();
+    </script>
+</body>
+</html>

@@ -10,6 +10,7 @@
       <a href="/piano"><button>Piano</button></a>
       <a href="/cheats"><button>Exam Feature Tester</button></a>
       <a href="/retro"><button>Retro Games</button></a>
+      <a href="/blockblast"><button>Block Blast</button></a>
     </div>
   </div>
 </div>
