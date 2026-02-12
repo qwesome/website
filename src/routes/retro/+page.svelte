@@ -13,7 +13,7 @@
       <a href="/mkds"><button>Mario Kart DS</button></a>
       <a href="/sm64ds"><button>Super Mario 64 DS</button></a>
       <a href="/tloz"><button>The Legend of Zelda</button></a>
-      <a href="/tlozoot"><button>TLOZ Ocarina of Time</button></a>
+      <a href="/tlozoot"><button>Ocarina of Time</button></a>
       <a href="/tlozmm"><button>TLOZ Majora's Mask</button></a>
     </div>
   </div>

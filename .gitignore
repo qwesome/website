@@ -25,7 +25,7 @@ vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
 # Ignore Eaglercraft file
-/static/Eaglercraft.html
+*/Eaglercraft.html
 
 # anti piracy is what we all about
 *.nds
@@ -38,3 +38,4 @@ vite.config.ts.timestamp-*
 *.sfc
 *.bin
 *.iso
+*.nes
