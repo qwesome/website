@@ -15,6 +15,8 @@
       <a href="/tloz"><button>The Legend of Zelda</button></a>
       <a href="/tlozoot"><button>Ocarina of Time</button></a>
       <a href="/tlozmm"><button>TLOZ Majora's Mask</button></a>
+      <a href="/smb"><button>Super Mario Bros.</button></a>
+      <a href="/smw"><button>Super Mario World</button></a>
     </div>
   </div>
 </div>
