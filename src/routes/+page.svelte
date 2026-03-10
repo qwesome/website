@@ -4,7 +4,7 @@
     <h1>Orson's Project Hub</h1>
     <div class="grid">
       <a href="/mcbeta"><button>Eagler Server</button></a>
-      <a href="/notflix"><button>Notflix</button></a>
+      <a href="https://notflix.studiobean.com" target="_blank" rel="noopener noreferrer"><button>Notflix</button></a>
       <a href="/tetris"><button>Tetris</button></a>
       <a href="/blockblast"><button>Block Blast</button></a>
       <a href="/piano"><button>Piano</button></a>

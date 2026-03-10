@@ -1,8 +1,11 @@
+<a href="/retro" class="back-btn">
+    <button>Back</button>
+</a>
 <header class="page-header">
-  <img src="/mk64.png" alt="MK64" on:click={refreshPage}>
+  <img src="/smb.png" alt="Super Mario Bros." on:click={refreshPage}>
 </header>
 
-<iframe src="/mk64.html" title="MK64" allowfullscreen class="full-page" bind:this={iframe} tabindex="0"
+<iframe src="/smb.html" title="Super Mario Bros." allowfullscreen class="full-page" bind:this={iframe} tabindex="0"
   on:load={() => { iframe?.focus(); iframe?.contentWindow?.postMessage('focus-game', '*'); }}
   on:focus={() => iframe?.contentWindow?.postMessage('focus-game', '*')}
 ></iframe>

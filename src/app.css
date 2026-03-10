@@ -72,6 +72,31 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.back-btn {
+  position: fixed;
+  top: 1rem;
+  left: 6rem;
+  z-index: 100;
+  text-decoration: none;
+}
+
+.back-btn button {
+  padding: .5rem;
+  font-size: 1.1rem;
+  border-radius: 8px;
+  border: 2px solid rgb(180, 190, 214);
+  background: linear-gradient(to bottom, #781461, #220443);
+  color: #fff;
+  cursor: pointer;
+  transition: none;
+}
+
+.back-btn button:hover {
+  background: linear-gradient(to bottom, #781461, #9b1c6a);
+  font-weight: bold;
+  border-color: rgb(180, 190, 214);
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -89,7 +114,16 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+
+  .back-btn button {
+    border: 2px solid rgb(30, 32, 37);
+    background: linear-gradient(to bottom, #ed99fd, #e94fd4);
+    color: #000000;
+  }
+
+  .back-btn button:hover {
+    background: linear-gradient(to bottom, #c23cb0, #e94fd4);
+    font-weight: bold;
+    border-color: rgb(30, 32, 37);
+  }
 }
-
-
-

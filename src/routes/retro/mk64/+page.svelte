@@ -1,8 +1,11 @@
+<a href="/retro" class="back-btn">
+    <button>Back</button>
+</a>
 <header class="page-header">
-  <img src="/tloz.png" alt="TLOZ" on:click={refreshPage}>
+  <img src="/mk64.png" alt="MK64" on:click={refreshPage}>
 </header>
 
-<iframe src="/tloz.html" title="tloz" allowfullscreen class="full-page" bind:this={iframe} tabindex="0"
+<iframe src="/mk64.html" title="MK64" allowfullscreen class="full-page" bind:this={iframe} tabindex="0"
   on:load={() => { iframe?.focus(); iframe?.contentWindow?.postMessage('focus-game', '*'); }}
   on:focus={() => iframe?.contentWindow?.postMessage('focus-game', '*')}
 ></iframe>
@@ -79,7 +82,7 @@
 
   @media (prefers-color-scheme: light) {
     .grid button {
-      border: 2px solid rgb(30, 32, 37) ;
+      border: 2px solid rgb(30, 32, 37);
       background: linear-gradient(to bottom, #ed99fd, #e94fd4);
       color: #000000;
     }

@@ -1,8 +1,11 @@
+<a href="/retro" class="back-btn">
+    <button>Back</button>
+</a>
 <header class="page-header">
-  <img src="/tlozoot.png" alt="TLOZ OOT" on:click={refreshPage}>
+  <img src="/tloz.png" alt="TLOZ" on:click={refreshPage}>
 </header>
 
-<iframe src="/tlozoot.html" title="tlozoot" allowfullscreen class="full-page" bind:this={iframe} tabindex="0"
+<iframe src="/tloz.html" title="tloz" allowfullscreen class="full-page" bind:this={iframe} tabindex="0"
   on:load={() => { iframe?.focus(); iframe?.contentWindow?.postMessage('focus-game', '*'); }}
   on:focus={() => iframe?.contentWindow?.postMessage('focus-game', '*')}
 ></iframe>

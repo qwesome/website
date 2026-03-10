@@ -3,20 +3,20 @@
   <div class="content">
     <h1>Retro Games</h1>
     <div class="grid">
-      <a href="/sm64"><button>Super Mario 64</button></a>
-      <a href="/sm64native"><button>SM64 PC (Unstable)</button></a>
-      <a href="/donkeykong"><button>Donkey Kong</button></a>
-      <a href="/dk64"><button>Donkey Kong 64</button></a>
-      <a href="/supermk"><button>Super Mario Kart</button></a>
-      <a href="/mk64"><button>Mario Kart 64</button></a>
-      <a href="/mksc"><button>MK: Super Circuit</button></a>
-      <a href="/mkds"><button>Mario Kart DS</button></a>
-      <a href="/sm64ds"><button>Super Mario 64 DS</button></a>
-      <a href="/tloz"><button>The Legend of Zelda</button></a>
-      <a href="/tlozoot"><button>Ocarina of Time</button></a>
-      <a href="/tlozmm"><button>TLOZ Majora's Mask</button></a>
-      <a href="/smb"><button>Super Mario Bros.</button></a>
-      <a href="/smw"><button>Super Mario World</button></a>
+      <a href="/retro/sm64"><button>Super Mario 64</button></a>
+      <a href="/retro/sm64native"><button>SM64 PC (Unstable)</button></a>
+      <a href="/retro/donkeykong"><button>Donkey Kong</button></a>
+      <a href="/retro/dk64"><button>Donkey Kong 64</button></a>
+      <a href="/retro/supermk"><button>Super Mario Kart</button></a>
+      <a href="/retro/mk64"><button>Mario Kart 64</button></a>
+      <a href="/retro/mksc"><button>MK: Super Circuit</button></a>
+      <a href="/retro/mkds"><button>Mario Kart DS</button></a>
+      <a href="/retro/sm64ds"><button>Super Mario 64 DS</button></a>
+      <a href="/retro/tloz"><button>The Legend of Zelda</button></a>
+      <a href="/retro/tlozoot"><button>Ocarina of Time</button></a>
+      <a href="/retro/tlozmm"><button>TLOZ Majora's Mask</button></a>
+      <a href="/retro/smb"><button>Super Mario Bros.</button></a>
+      <a href="/retro/smw"><button>Super Mario World</button></a>
     </div>
   </div>
 </div>
@@ -87,6 +87,7 @@
   background: linear-gradient(to bottom, #781461, #9b1c6a);
   font-weight: bold;
 }
+
 
 @media (prefers-color-scheme: light) {
   .grid button {

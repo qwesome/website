@@ -1,8 +1,11 @@
+<a href="/retro" class="back-btn">
+    <button>Back</button>
+</a>
 <header class="page-header">
-  <img src="/supermk.png" alt="Super MK" on:click={refreshPage}>
+  <img src="/smw.png" alt="Super Mario World" on:click={refreshPage}>
 </header>
 
-<iframe src="/supermk.html" title="Super MK" allowfullscreen class="full-page" bind:this={iframe} tabindex="0"
+<iframe src="/smw.html" title="Super Mario World" allowfullscreen class="full-page" bind:this={iframe} tabindex="0"
   on:load={() => { iframe?.focus(); iframe?.contentWindow?.postMessage('focus-game', '*'); }}
   on:focus={() => iframe?.contentWindow?.postMessage('focus-game', '*')}
 ></iframe>
@@ -79,7 +82,7 @@
 
   @media (prefers-color-scheme: light) {
     .grid button {
-      border: 2px solid rgb(30, 32, 37) ;
+      border: 2px solid rgb(30, 32, 37);
       background: linear-gradient(to bottom, #ed99fd, #e94fd4);
       color: #000000;
     }
