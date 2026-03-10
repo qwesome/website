@@ -1,66 +1,63 @@
-<div class="overlay"></div>
-<div class="content">
-  <h1>Tetris</h1>
-  <iframe title="Tetris" src="/tetris.html" autofocus="true"></iframe>
-</div>
+<header class="page-header">
+  <img src="/tetris.png" alt="Tetris" on:click={refreshPage}>
+</header>
+
+<iframe title="Tetris" src="/tetris.html" autofocus="true" allowfullscreen class="full-page" bind:this={iframe}></iframe>
+
+<script lang="ts">
+  let iframe: HTMLIFrameElement;
+
+  function refreshPage() {
+    location.reload();
+  }
+</script>
 
 <style>
-:global(html), :global(body) {
-  overflow: hidden;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
 
 :global(body) {
   background: url('/background.png') center center / cover no-repeat;
   position: relative;
   min-height: 100vh;
 }
-
-.overlay {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  z-index: 0;
-  background: linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgb(23,33,49) 100%);
-}
-
-.content {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-  text-align: center;
-  gap: 1rem;
-}
-
-iframe {
-  width: min(90vw, 800px);
-  height: min(70vh, 600px);
-  border: 4px solid #DF11B2;
-  border-radius: 8px;
-  box-shadow: 0 0 20px rgba(240, 0, 188, 0.2);
-}
-
-@media (prefers-color-scheme: light) {
-  :global(body) {
-    background: url('/background-inverted.png') center center / cover no-repeat;
+  .page-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 75px;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 1rem;
+    z-index: 10;
   }
 
-  .overlay {
-    background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgb(252, 243, 255) 100%);
+  .page-header img {
+    max-height: 100%;
+    width: auto;
+    object-fit: contain;
+    cursor: pointer;
   }
 
-  iframe {
-    border: 4px solid #f066d2;
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(240, 0, 188, 0.2);
+  .full-page {
+    position: fixed;
+    top: 75px;
+    left: 0;
+    width: 100vw;
+    height: calc(100vh - 75px);
+    border: none;
   }
-}
+
+  @media (prefers-color-scheme: light) {
+    .grid button {
+      border: 2px solid rgb(30, 32, 37);
+      background: linear-gradient(to bottom, #ed99fd, #e94fd4);
+      color: #000000;
+    }
+
+    :global(body) {
+      background: url('/background-inverted.png') center center / cover no-repeat;
+    }
+  }
 </style>
