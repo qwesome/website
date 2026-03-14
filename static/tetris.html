@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tetris</title>
     <style>
         :root {
             --tetris-cyan: #df11b2;
@@ -13,17 +14,20 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            overflow: hidden;
-        }
-
-        body {
+            display: flex;
+            align-items: center; /* vertical centering */
+            justify-content: center; /* horizontal centering */
             background: var(--bg-dark);
             color: #E1E1E1;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            overflow: hidden;
+            flex-direction: column; /* stack stats and game vertically */
+        }
+
+        #stats {
+            margin-bottom: 20px;
+            text-align: center;
+            font-size: 18px;
         }
 
         .game-container {
@@ -54,9 +58,6 @@
             border: 4px solid var(--tetris-cyan);
             border-radius: 8px;
             box-shadow: 0 0 20px rgba(240, 0, 188, 0.2);
-        }
-
-        #preview, #hold {
             background: #000;
         }
 
@@ -65,20 +66,30 @@
         }
 
         @media (prefers-color-scheme: light) {
-        :root {
-            --tetris-cyan: #f066d2;
-            --bg-dark: #ffffff;
+            :root {
+                --tetris-cyan: #f066d2;
+                --bg-dark: #ffffff;
+            }
+            body {
+                color: #000000;
+            }
+            canvas {
+                border: 4px solid var(--tetris-cyan);
+                box-shadow: 0 0 20px rgba(240, 0, 188, 0.2);
+            }
         }
-        body {
-            color: #000000;
-        }
-        canvas {
-            border: 4px solid var(--tetris-cyan);
-            border-radius: 8px;
-            box-shadow: 0 0 20px rgba(240, 0, 188, 0.2);
-        }
-    }
 
+        /* Optional: scale game to fit viewport if screen is too small */
+        @media (max-height: 600px) {
+            .game-container {
+                transform: scale(0.8);
+            }
+        }
+        @media (max-width: 500px) {
+            .game-container {
+                transform: scale(0.7);
+            }
+        }
     </style>
 </head>
 <body>
@@ -94,7 +105,7 @@
         </div>
 
         <canvas id="tetris" width="240" height="400"></canvas>
-        
+
         <div class="side-container">
             <div class="preview-container">
                 <div class="preview-label">Next:</div>
@@ -112,9 +123,11 @@
         const holdContext = holdCanvas.getContext('2d');
         const scoreElement = document.getElementById('score');
         const levelElement = document.getElementById('level');
+
         const blockSize = 20;
         const cols = canvas.width / blockSize;
         const rows = canvas.height / blockSize;
+
         let score = 0;
         let level = 1;
         let linesCleared = 0;
@@ -132,30 +145,27 @@
             [[0, 1, 1], [1, 1, 0]]  // Z
         ];
 
-let colors = [
-    '#FF0D72', '#0DC2FF', '#0DFF72',
-    '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'
-];
-
-const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-function updateColors() {
-    if (mediaQuery.matches) {
-        colors = [
-            '#ffb3d5', '#a5f6fa', '#87ffc5',
-            '#d5a0e8', '#ffc98c', '#ffee8f', '#a5bdf2'
-        ];
-    } else {
-        colors = [
+        let colors = [
             '#FF0D72', '#0DC2FF', '#0DFF72',
             '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'
         ];
-    }
-}
 
-updateColors();
-
-mediaQuery.addEventListener('change', updateColors);
-
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
+        function updateColors() {
+            if (mediaQuery.matches) {
+                colors = [
+                    '#ffb3d5', '#a5f6fa', '#87ffc5',
+                    '#d5a0e8', '#ffc98c', '#ffee8f', '#a5bdf2'
+                ];
+            } else {
+                colors = [
+                    '#FF0D72', '#0DC2FF', '#0DFF72',
+                    '#F538FF', '#FF8E0D', '#FFE138', '#3877FF'
+                ];
+            }
+        }
+        updateColors();
+        mediaQuery.addEventListener('change', updateColors);
 
         let currentPiece = null;
         let currentPiecePos = { x: 0, y: 0 };
@@ -178,12 +188,12 @@ mediaQuery.addEventListener('change', updateColors);
             currentPiece = nextPiece;
             currentColor = nextColor;
             currentPieceIndex = nextPieceIndex;
-            
+
             const pieceIndex = Math.floor(Math.random() * pieces.length);
             nextPiece = pieces[pieceIndex];
             nextColor = colors[pieceIndex];
             nextPieceIndex = pieceIndex;
-            
+
             currentPiecePos = {
                 x: Math.floor((cols - currentPiece[0].length) / 2),
                 y: 0
@@ -217,17 +227,13 @@ mediaQuery.addEventListener('change', updateColors);
         function drawPreview() {
             previewContext.fillStyle = '#000';
             previewContext.fillRect(0, 0, previewCanvas.width, previewCanvas.height);
-            if (nextPiece) {
-                drawPiece(previewContext, nextPiece, nextColor, previewCanvas);
-            }
+            if (nextPiece) drawPiece(previewContext, nextPiece, nextColor, previewCanvas);
         }
 
         function drawHold() {
             holdContext.fillStyle = '#000';
             holdContext.fillRect(0, 0, holdCanvas.width, holdCanvas.height);
-            if (holdPiece) {
-                drawPiece(holdContext, holdPiece, holdColor, holdCanvas);
-            }
+            if (holdPiece) drawPiece(holdContext, holdPiece, holdColor, holdCanvas);
         }
 
         function holdCurrentPiece() {
@@ -246,15 +252,12 @@ mediaQuery.addEventListener('change', updateColors);
                 currentPiece = holdPiece;
                 currentColor = holdColor;
                 currentPieceIndex = holdPieceIndex;
-                
+
                 holdPiece = tempPiece;
                 holdColor = tempColor;
                 holdPieceIndex = tempIndex;
 
-                currentPiecePos = {
-                    x: Math.floor((cols - currentPiece[0].length) / 2),
-                    y: 0
-                };
+                currentPiecePos = { x: Math.floor((cols - currentPiece[0].length) / 2), y: 0 };
             }
 
             canHold = false;
@@ -267,10 +270,7 @@ mediaQuery.addEventListener('change', updateColors);
                     if (piece[y][x]) {
                         const boardX = pos.x + x;
                         const boardY = pos.y + y;
-
-                        if (boardX < 0 || boardX >= cols ||
-                            boardY >= rows ||
-                            (boardY >= 0 && board[boardY][boardX])) {
+                        if (boardX < 0 || boardX >= cols || boardY >= rows || (boardY >= 0 && board[boardY][boardX])) {
                             return true;
                         }
                     }
@@ -281,21 +281,15 @@ mediaQuery.addEventListener('change', updateColors);
 
         function getGhostPosition() {
             const ghostPos = { ...currentPiecePos };
-            while (!collide(currentPiece, { ...ghostPos, y: ghostPos.y + 1 })) {
-                ghostPos.y++;
-            }
+            while (!collide(currentPiece, { ...ghostPos, y: ghostPos.y + 1 })) ghostPos.y++;
             return ghostPos;
         }
 
         function rotate() {
-            const rotated = currentPiece[0].map((_, i) =>
-                currentPiece.map(row => row[i]).reverse()
-            );
+            const rotated = currentPiece[0].map((_, i) => currentPiece.map(row => row[i]).reverse());
             const prevPiece = currentPiece;
             currentPiece = rotated;
-            if (collide()) {
-                currentPiece = prevPiece;
-            }
+            if (collide()) currentPiece = prevPiece;
         }
 
         function merge() {
@@ -303,9 +297,7 @@ mediaQuery.addEventListener('change', updateColors);
                 row.forEach((value, x) => {
                     if (value) {
                         const boardY = currentPiecePos.y + y;
-                        if (boardY >= 0) {
-                            board[boardY][currentPiecePos.x + x] = currentColor;
-                        }
+                        if (boardY >= 0) board[boardY][currentPiecePos.x + x] = currentColor;
                     }
                 });
             });
@@ -317,7 +309,6 @@ mediaQuery.addEventListener('change', updateColors);
                 for (let x = 0; x < cols; x++) {
                     if (!board[y][x]) continue outer;
                 }
-                
                 const row = board.splice(y, 1)[0];
                 board.unshift(row.fill(0));
                 y++;
@@ -327,7 +318,6 @@ mediaQuery.addEventListener('change', updateColors);
                 linesCleared += lines;
                 score += lines * 100 * level;
                 scoreElement.textContent = `Score: ${score}`;
-                
                 const newLevel = Math.floor(linesCleared / 10) + 1;
                 if (newLevel !== level) {
                     level = newLevel;
@@ -354,14 +344,7 @@ mediaQuery.addEventListener('change', updateColors);
                 context.fillStyle = `${currentColor}33`;
                 currentPiece.forEach((row, y) => {
                     row.forEach((value, x) => {
-                        if (value) {
-                            context.fillRect(
-                                (ghostPos.x + x) * blockSize,
-                                (ghostPos.y + y) * blockSize,
-                                blockSize - 1,
-                                blockSize - 1
-                            );
-                        }
+                        if (value) context.fillRect((ghostPos.x + x) * blockSize, (ghostPos.y + y) * blockSize, blockSize - 1, blockSize - 1);
                     });
                 });
             }
@@ -370,14 +353,7 @@ mediaQuery.addEventListener('change', updateColors);
                 context.fillStyle = currentColor;
                 currentPiece.forEach((row, y) => {
                     row.forEach((value, x) => {
-                        if (value) {
-                            context.fillRect(
-                                (currentPiecePos.x + x) * blockSize,
-                                (currentPiecePos.y + y) * blockSize,
-                                blockSize - 1,
-                                blockSize - 1
-                            );
-                        }
+                        if (value) context.fillRect((currentPiecePos.x + x) * blockSize, (currentPiecePos.y + y) * blockSize, blockSize - 1, blockSize - 1);
                     });
                 });
             }
@@ -394,9 +370,7 @@ mediaQuery.addEventListener('change', updateColors);
 
             dropInterval = Math.max(100, 1000 - (level - 1) * 100);
 
-            if (dropCounter > dropInterval) {
-                drop();
-            }
+            if (dropCounter > dropInterval) drop();
 
             draw();
             requestAnimationFrame(update);
@@ -427,32 +401,13 @@ mediaQuery.addEventListener('change', updateColors);
 
         document.addEventListener('keydown', event => {
             if (!currentPiece) return;
-
             switch (event.keyCode) {
-                case 37:
-                    currentPiecePos.x--;
-                    if (collide()) currentPiecePos.x++;
-                    break;
-                case 39:
-                    currentPiecePos.x++;
-                    if (collide()) currentPiecePos.x--;
-                    break;
-                case 40:
-                    drop();
-                    break;
-                case 38:
-                    rotate();
-                    break;
-                case 32:
-                    while (!collide()) {
-                        currentPiecePos.y++;
-                    }
-                    currentPiecePos.y--;
-                    drop();
-                    break;
-                case 16:
-                    holdCurrentPiece();
-                    break;
+                case 37: currentPiecePos.x--; if (collide()) currentPiecePos.x++; break;
+                case 39: currentPiecePos.x++; if (collide()) currentPiecePos.x--; break;
+                case 40: drop(); break;
+                case 38: rotate(); break;
+                case 32: while (!collide()) currentPiecePos.y++; currentPiecePos.y--; drop(); break;
+                case 16: holdCurrentPiece(); break;
             }
         });
 
