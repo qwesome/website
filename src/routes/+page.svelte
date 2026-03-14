@@ -474,6 +474,13 @@
 </div>
 {/if}
 
+<div style="display: none;">
+  <iframe src="/tetris.html"></iframe>
+  <iframe src="/bb.html"></iframe>
+  <iframe src="/piano.html"></iframe>
+  <iframe src="/songs.html"></iframe>
+</div>
+
 <style>
   :global(body) {
     margin: 0;
