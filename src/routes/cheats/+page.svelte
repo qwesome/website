@@ -1,8 +1,4 @@
-<script>
-  let iframe;
-</script>
-
-<iframe src="focus-app.html" title="Focus App" allowfullscreen class="full-page" bind:this={iframe}></iframe>
+<iframe src="cheats.html" title="Focus App" allowfullscreen class="full-page" bind:this={iframe}></iframe>
 
 <style>
   :global(html), :global(body) {
