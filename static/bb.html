@@ -234,5 +234,8 @@
         createPiece();
         update();
     </script>
+    <script>
+        window.addEventListener('click', () => window.parent.postMessage('bringToFront', '*'));
+    </script>
 </body>
 </html>

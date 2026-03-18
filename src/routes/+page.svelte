@@ -27,7 +27,7 @@
   // Determine the active window (highest z-index)
   $: activeWindow = Object.keys(windows).reduce((a, b) => windows[a].zIndex > windows[b].zIndex ? a : b);
   
-  const eaglerVersions = ['1.12.2', '1.8.8', '1.5.2', 'b1.7.3', 'a1.2.6'];
+  const eaglerVersions = ['1.12.2', 'Pixel Client 1.12.2', '1.8.8', 'Pixel Client 1.8.8', '1.5.2', 'b1.7.3', 'a1.2.6'];
   const iframeWindows = ['tetris', 'bb', 'piano', 'songs'];
 
   onMount(async () => {
@@ -39,15 +39,28 @@
     w.y = Math.max(0, (vh - w.h) / 2);
     windows = { ...windows };
 
-    await tick();
-    adjustWindowHeight('main');
-
     // When an iframe gains focus, bring its window to front.
     document.addEventListener('focusin', (e) => {
       if (e.target && e.target.tagName === 'IFRAME') {
         const windowDiv = e.target.closest('.window');
         if (windowDiv && windowDiv.dataset.id) {
           bringToFront(windowDiv.dataset.id);
+        }
+      }
+    });
+
+    // When clicking inside an iframe, bring its window to front.
+    window.addEventListener('message', (e) => {
+      if (e.data === 'bringToFront') {
+        const iframes = document.querySelectorAll('iframe');
+        for (const iframe of iframes) {
+          if (iframe.contentWindow === e.source) {
+            const windowDiv = iframe.closest('.window');
+            if (windowDiv && windowDiv.dataset.id) {
+              bringToFront(windowDiv.dataset.id);
+            }
+            break;
+          }
         }
       }
     });
@@ -69,23 +82,6 @@
     windows = { ...windows };
   }
 
-  function adjustWindowHeight(id) {
-    const winEl = document.querySelector(`[data-id="${id}"]`);
-    if (!winEl) return;
-
-    const titleEl = winEl.querySelector('.title-bar');
-    const bodyEl = winEl.querySelector('.window-body');
-    if (!bodyEl) return;
-
-    const titleH = titleEl?.offsetHeight ?? 0;
-    const bodyH = bodyEl.scrollHeight;
-    const desiredH = titleH + bodyH;
-    const min = minH[id] ?? 150;
-
-    windows[id].h = Math.max(min, desiredH);
-    windows = { ...windows };
-  }
-
   async function openWindow(id, e) {
     if (e) e.preventDefault();
     const vw = window.innerWidth;
@@ -97,8 +93,6 @@
     windows = { ...windows };
 
     bringToFront(id);
-    await tick();
-    adjustWindowHeight(id);
   }
 
   function closeWindow(id) {
@@ -210,7 +204,7 @@
 
 {#if windows.main.x !== null}
 <div
-  class="window glass"
+  class="window"
   class:active={activeWindow === 'main'}
   style="left:{windows.main.x}px; top:{windows.main.y}px; width:{windows.main.w}px; height:{windows.main.h}px; z-index:{windows.main.zIndex};"
   on:mousedown={() => bringToFront('main')}
@@ -250,7 +244,7 @@
 
 {#if windows.eagler.open && windows.eagler.x !== null}
 <div
-  class="window glass"
+  class="window"
   class:active={activeWindow === 'eagler'}
   style="left:{windows.eagler.x}px; top:{windows.eagler.y}px; width:{windows.eagler.w}px; height:{windows.eagler.h}px; z-index:{windows.eagler.zIndex};"
   on:mousedown={() => bringToFront('eagler')}
@@ -276,9 +270,15 @@
   <div class="window-body has-scrollbar">
     <div class="button-grid">
       {#each eaglerVersions as version}
-        <a href="/Eaglercraft_{version}.html" target="_blank" rel="noopener noreferrer">
-          <button>{version}</button>
-        </a>
+        {#if version.startsWith('Pixel Client')}
+          <a href="/PixelClient_{version.replace('Pixel Client ', '')}.html" target="_blank" rel="noopener noreferrer">
+            <button>{version}</button>
+          </a>
+        {:else}
+          <a href="/Eaglercraft_{version}.html" target="_blank" rel="noopener noreferrer">
+            <button>{version}</button>
+          </a>
+        {/if}
       {/each}
     </div>
   </div>
@@ -287,7 +287,7 @@
 
 {#if windows.tetris.open && windows.tetris.x !== null}
 <div
-  class="window glass"
+  class="window"
   class:active={activeWindow === 'tetris'}
   style="left:{windows.tetris.x}px; top:{windows.tetris.y}px; width:{windows.tetris.w}px; height:{windows.tetris.h}px; z-index:{windows.tetris.zIndex};"
   on:mousedown={() => bringToFront('tetris')}
@@ -323,7 +323,7 @@
 
 {#if windows.bb.open && windows.bb.x !== null}
 <div
-  class="window glass"
+  class="window"
   class:active={activeWindow === 'bb'}
   style="left:{windows.bb.x}px; top:{windows.bb.y}px; width:{windows.bb.w}px; height:{windows.bb.h}px; z-index:{windows.bb.zIndex};"
   on:mousedown={() => bringToFront('bb')}
@@ -359,7 +359,7 @@
 
 {#if windows.piano.open && windows.piano.x !== null}
 <div
-  class="window glass"
+  class="window"
   class:active={activeWindow === 'piano'}
   style="left:{windows.piano.x}px; top:{windows.piano.y}px; width:{windows.piano.w}px; height:{windows.piano.h}px; z-index:{windows.piano.zIndex};"
   on:mousedown={() => bringToFront('piano')}
@@ -395,7 +395,7 @@
 
 {#if windows.songs.open && windows.songs.x !== null}
 <div
-  class="window glass"
+  class="window"
   class:active={activeWindow === 'songs'}
   style="left:{windows.songs.x}px; top:{windows.songs.y}px; width:{windows.songs.w}px; height:{windows.songs.h}px; z-index:{windows.songs.zIndex};"
   on:mousedown={() => bringToFront('songs')}
@@ -430,7 +430,7 @@
 
 {#if windows.retro.open && windows.retro.x !== null}
 <div
-  class="window glass"
+  class="window"
   class:active={activeWindow === 'retro'}
   style="left:{windows.retro.x}px; top:{windows.retro.y}px; width:{windows.retro.w}px; height:{windows.retro.h}px; z-index:{windows.retro.zIndex};"
   on:mousedown={() => bringToFront('retro')}
