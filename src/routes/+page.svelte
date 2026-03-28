@@ -237,6 +237,7 @@
       <button on:click={e => openWindow('songs', e)}>Piano Songs</button>
       <a href="/cheats" target="_blank" rel="noopener noreferrer"><button>Exam Feature Tester</button></a>
       <button on:click={e => openWindow('retro', e)}>Retro Games</button>
+      <a href="/chat" target="_blank" rel="noopener noreferrer"><button>Chatroom</button></a>
     </div>
   </div>
 </div>

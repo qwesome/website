@@ -27,6 +27,7 @@
 		"vite": "^7.0.4"
 	},
 	"dependencies": {
-		"7.css": "^0.21.1"
+		"7.css": "^0.21.1",
+		"socket.io-client": "^4.8.3"
 	}
 }
