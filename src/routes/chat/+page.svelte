@@ -10,7 +10,7 @@
   let isFocused = true, hasNotified = false, unreadChats = {};
   let textareaElement; // Reference for auto-focus
 
-  const SERVER_URL = 'http://119.224.65.128:3001';
+  const SERVER_URL = 'https://api.studiobean.com';
 
   const handleFocus = () => { isFocused = true; hasNotified = false; };
   const handleBlur = () => { isFocused = false; };
