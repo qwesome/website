@@ -251,6 +251,11 @@
   let lightboxSrc = null;
 </script>
 
+<svelte:head>
+  <title>𝚞𝚗𝚋𝚕𝚘𝚌𝚔𝚎𝚍 𝚌𝚑𝚊𝚝</title>
+  <link rel="icon" type="image/png" href="/chat-favicon.png" />
+</svelte:head>
+
 {#if !currentUser}
 <div class="auth">
   <div class="auth-box">
