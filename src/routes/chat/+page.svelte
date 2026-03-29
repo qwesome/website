@@ -9,6 +9,7 @@
   let userState = {}, messageStore = { global: [] }, msgInput = '';
   let isFocused = true, hasNotified = false, unreadChats = {};
   let textareaElement;
+  let idleTimer;
 
   // Avatar state
   let avatarCache = {};      // username -> base64 string or null
@@ -17,8 +18,24 @@
 
   const SERVER_URL = 'https://api.studiobean.com';
 
-  const handleFocus = () => { isFocused = true; hasNotified = false; };
-  const handleBlur = () => { isFocused = false; };
+  const handleFocus = () => { 
+    isFocused = true; 
+    hasNotified = false; 
+    clearTimeout(idleTimer);
+    if (socket && currentUser) {
+      socket.emit('update_status', 'online');
+    }
+  };
+
+  const handleBlur = () => { 
+    isFocused = false; 
+    clearTimeout(idleTimer);
+    if (currentUser) {
+      idleTimer = setTimeout(() => {
+        if (socket) socket.emit('update_status', 'away');
+      }, 5000);
+    }
+  };
 
   const handleGlobalKeyDown = (e) => {
     if (!currentUser || !textareaElement) return;
@@ -36,6 +53,7 @@
       window.removeEventListener('focus', handleFocus);
       window.removeEventListener('blur', handleBlur);
       window.removeEventListener('keydown', handleGlobalKeyDown);
+      clearTimeout(idleTimer);
     };
   });
 
@@ -84,6 +102,7 @@
     avatarCache = {};
     Object.values(userState).forEach(s => { if (s.timeoutId) clearTimeout(s.timeoutId); });
     userState = {};
+    clearTimeout(idleTimer);
     if (socket) { socket.off(); socket.disconnect(); socket = null; }
   }
 
@@ -106,15 +125,19 @@
       if (channelId === activeChat.id) scrollToBottom();
     });
 
-    socket.on('active_users', (serverUsers) => {
-      serverUsers.forEach(u => {
+    socket.on('active_users', (serverUsersMap) => {
+      Object.entries(serverUsersMap).forEach(([u, status]) => {
         if (userState[u]?.timeoutId) clearTimeout(userState[u].timeoutId);
-        userState[u] = { status: 'online', timeoutId: null };
+        userState[u] = { status: status, timeoutId: null };
         fetchAvatar(u);
       });
+
       Object.keys(userState).forEach(u => {
-        if (!serverUsers.includes(u) && userState[u].status === 'online') {
-          const tid = setTimeout(() => { delete userState[u]; userState = { ...userState }; }, 60000);
+        if (!serverUsersMap[u] && userState[u].status !== 'offline') {
+          const tid = setTimeout(() => { 
+            delete userState[u]; 
+            userState = { ...userState }; 
+          }, 60000);
           userState[u] = { status: 'offline', timeoutId: tid };
         }
       });
@@ -383,6 +406,7 @@
   .nav-item.active { background: var(--surface0); color: var(--mauve); border-left: 3px solid var(--mauve); padding-left: 17px; }
   .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--surface2); }
   .dot.online { background: var(--green); }
+  .dot.away { background: var(--yellow); }
   .dot.offline { background: var(--red); }
   .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); margin-left: auto; }
   .sidebar-footer { margin-top: auto; border-top: 1px solid var(--surface0); padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
@@ -398,44 +422,37 @@
   .avatar-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.55); color: var(--text); font-size: 18px; font-weight: bold; display: flex; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.15s; }
   .footer-avatar:hover .avatar-overlay { opacity: 1; }
   .footer-avatar:hover { border-color: var(--mauve); }
-.avatar-clear,
-.avatar-clear:hover,
-.avatar-clear:active,
-.avatar-clear:focus,
-.avatar-clear:focus-visible {
-  all: unset !important;
-
-  position: absolute !important;
-  top: -8px !important;
-  right: -10px !important;
-
-  color: var(--mauve) !important;
-  font-size: 11px !important;
-  line-height: 1 !important;
-
-  cursor: pointer !important;
-  z-index: 1 !important;
-
-  background: transparent !important;
-  border: none !important;
-  outline: none !important;
-  box-shadow: none !important;
-  appearance: none !important;
-}
-
-/* 🔥 THIS is probably what you're missing */
-.avatar-clear::before,
-.avatar-clear::after,
-.avatar-clear:hover::before,
-.avatar-clear:hover::after {
-  content: none !important;
-  display: none !important;
-}
-
-/* Force hover color only */
-.avatar-clear:hover {
-  color: var(--red) !important;
-}  .chat { flex: 1; display: flex; flex-direction: column; background: var(--base); min-width: 0; }
+  .avatar-clear,
+  .avatar-clear:hover,
+  .avatar-clear:active,
+  .avatar-clear:focus,
+  .avatar-clear:focus-visible {
+    all: unset !important;
+    position: absolute !important;
+    top: -8px !important;
+    right: -10px !important;
+    color: var(--mauve) !important;
+    font-size: 11px !important;
+    line-height: 1 !important;
+    cursor: pointer !important;
+    z-index: 1 !important;
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    appearance: none !important;
+  }
+  .avatar-clear::before,
+  .avatar-clear::after,
+  .avatar-clear:hover::before,
+  .avatar-clear:hover::after {
+    content: none !important;
+    display: none !important;
+  }
+  .avatar-clear:hover {
+    color: var(--red) !important;
+  }
+  .chat { flex: 1; display: flex; flex-direction: column; background: var(--base); min-width: 0; }
   .chat-header { padding: 16px 24px; border-bottom: 1px solid var(--surface0); color: var(--text); font-size: 15px; font-weight: bold; }
   .messages { flex: 1; overflow-y: auto; padding: 20px 0; display: flex; flex-direction: column; scroll-behavior: smooth; }
   .empty { margin: auto; color: var(--surface2); font-size: 14px; opacity: 0.7; }
