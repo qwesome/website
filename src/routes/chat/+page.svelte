@@ -328,7 +328,7 @@
         <span class="footer-name">{currentUser}</span>
         {#if avatarError}<span class="avatar-error">{avatarError}</span>{/if}
       </div>
-      <button class="logout-btn" onclick={logout}>↩</button>
+      <button class="logout-btn" onclick={logout}>[🠔</button>
     </div>
   </div>
   <div class="chat">
@@ -368,7 +368,7 @@
         </textarea>
         <input type="file" accept="image/*" bind:this={fileInput} onchange={onFileChange} style="display:none" />
         <button class="upload-btn" onclick={triggerFileInput} title="upload image">+</button>
-        <button class="send-btn" onclick={send}>↩</button>
+        <button class="send-btn" onclick={send}>➣</button>
       </div>
       {#if imageError}<div class="char-count" style="color:var(--red)">{imageError}</div>{/if}
       {#if nearLimit}<div class="char-count" class:warn={overWarning}>{charCount}/4000</div>{/if}
