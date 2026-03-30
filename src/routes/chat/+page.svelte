@@ -384,6 +384,7 @@
 {/if}
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&display=swap');
   :root { --crust: #181926; --mantle: #1e2030; --base: #24273a; --surface0: #363a4f; --surface1: #494d64; --surface2: #5b6078; --overlay0: #6e738d; --overlay1: #8087a2; --subtext0: #a5adcb; --text: #cad3f5; --lavender: #b7bdf8; --blue: #8aadf4; --mauve: #c6a0f6; --green: #a6da95; --teal: #8bd5ca; --red: #ed8796; --peach: #f5a97f; --yellow: #eed49f; }
   :global(html), :global(body) { margin: 0; padding: 0; width: 100vw; height: 100vh; background: var(--base); color: var(--subtext0); overflow: hidden; font-family: monospace; font-size: 15px; }
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none !important; font-family: monospace !important; }
