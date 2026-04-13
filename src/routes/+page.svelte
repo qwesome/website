@@ -1,5 +1,8 @@
+<svelte:head>
+<link rel="stylesheet" href="/7.css">
+</svelte:head>
+
 <script>
-  import "7.css/dist/7.css";
   import { onMount, afterUpdate, tick } from 'svelte';
   
   // --- Window state ---
