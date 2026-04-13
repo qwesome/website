@@ -1,5 +1,4 @@
 <script>
-  import "7.css/dist/7.css";
 </script>
 
 <slot />
