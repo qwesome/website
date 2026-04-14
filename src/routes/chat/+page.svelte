@@ -381,7 +381,7 @@ function parseMarkdown(text) {
     .replace(/\n/g, '<br>')
     .replace(/^mc:\s*(.*?)$/gm, '<span class="mc-text">$1</span>')
     .replace(/\b(minecraft)\b/gi, '<span class="mc-text">$1</span>')
-    .replace(/^.\s*(.*?)$/gm, '<span class="pinktext">$1</span>')
+    .replace(/^\.\s*(.*?)$/gm, '<span class="pinktext">$1</span>');
 
   // Restore code blocks
   text = text.replace(/CODEBLOCK_(\d+)_END/g, (_, i) => codeBlocks[i]);
