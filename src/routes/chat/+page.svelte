@@ -350,44 +350,82 @@
 
 function parseMarkdown(text) {
   const codeBlocks = [];
+  const ESC = '\uE000';
 
-  // Extract fenced code blocks before escaping
+  // Extract fenced code blocks first
   text = text.replace(/```([\s\S]+?)```/g, (_, code) => {
-    const escaped = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    codeBlocks.push(`<div class="code-block"><pre><code>${escaped}</code></pre></div>`);
+    const escaped = code
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    codeBlocks.push(
+      `<div class="code-block"><pre><code>${escaped}</code></pre></div>`
+    );
+
     return `CODEBLOCK_${codeBlocks.length - 1}_END`;
   });
 
-  // Extract inline code before escaping
+  // Extract inline code
   text = text.replace(/`([^`]+)`/gs, (_, code) => {
-      const escaped = code.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const escaped = code
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
     codeBlocks.push(`<code>${escaped}</code>`);
     return `CODEBLOCK_${codeBlocks.length - 1}_END`;
   });
 
-  // Now escape and process everything else
+  // HTML escape
   text = text
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/^### (.+)$/gm, '<span class="md-heading md-heading-3">$1</span>')
-    .replace(/^## (.+)$/gm, '<span class="md-heading md-heading-2">$1</span>')
-    .replace(/^(?!##)# (.+)$/gm, '<span class="md-heading md-heading-1">$1</span>')
-    .replace(/\*\*\*(.+?)\*\*\*/gs, '<strong><em>$1</em></strong>')
-    .replace(/\*\*(.+?)\*\*/gs, '<strong>$1</strong>')
-    .replace(/\*(.+?)\*/gs, '<em>$1</em>')
-    .replace(/__(.+?)__/gs, '<u>$1</u>')
-    .replace(/~~(.+?)~~/gs, '<s>$1</s>')
-    .replace(/\|\|(.+?)\|\|/gs, '<span class="spoiler">$1</span>')
-    .replace(/^&gt;(.*?)$/gm, '<span class="greentext">&gt;$1</span>')
-    .replace(/\n/g, '<br>')
-    .replace(/^mc:\s*(.*?)$/gm, '<span class="mc-text">$1</span>')
-    .replace(/\b(minecraft)\b/gi, '<span class="mc-text">$1</span>')
-    .replace(/^\.\s*(.*?)$/gm, '<span class="pinktext">$1</span>');
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+  // Escape ANY escaped character
+  text = text.replace(/\\(.)/g, ESC + '$1');
+
+  // Headings (escape-aware)
+  text = text
+    .replace(new RegExp(`^${ESC}?### (.+)$`, 'gm'), '<span class="md-heading md-heading-3">$1</span>')
+    .replace(new RegExp(`^${ESC}?## (.+)$`, 'gm'), '<span class="md-heading md-heading-2">$1</span>')
+    .replace(new RegExp(`^(?!##)# (.+)$`, 'gm'), '<span class="md-heading md-heading-1">$1</span>');
+
+  // Bold + italic FIRST (order matters)
+  text = text
+    .replace(new RegExp(`(?<!${ESC})\\*\\*\\*(.+?)(?<!${ESC})\\*\\*\\*`, 'g'), '<strong><em>$1</em></strong>')
+    .replace(new RegExp(`(?<!${ESC})\\*\\*(.+?)(?<!${ESC})\\*\\*`, 'g'), '<strong>$1</strong>')
+    .replace(new RegExp(`(?<!${ESC})\\*(?!\\*)(.+?)(?<!${ESC})\\*`, 'g'), '<em>$1</em>')
+
+    .replace(new RegExp(`(?<!${ESC})__(.+?)(?<!${ESC})__`, 'g'), '<u>$1</u>')
+    .replace(new RegExp(`(?<!${ESC})~~(.+?)(?<!${ESC})~~`, 'g'), '<s>$1</s>')
+    .replace(new RegExp(`(?<!${ESC})\\|\\|(.+?)(?<!${ESC})\\|\\|`, 'g'), '<span class="spoiler">$1</span>');
+
+  // Greentext
+  text = text.replace(/^&gt;(.*?)$/gm, '<span class="greentext">&gt;$1</span>');
+
+  // Minecraft prefix line
+  text = text.replace(/^mc:\s*(.*?)$/gm, '<span class="mc-text">$1</span>');
+
+  // Pink text: only if "." is first non-space character
+  text = text.replace(/^\s*\.(\s*)(.*?)$/gm, '<span class="pinktext">$2</span>');
+
+  // Inline keyword
+  text = text.replace(/\b(minecraft)\b/gi, '<span class="mc-text">$1</span>');
+
+  // Newlines
+  text = text.replace(/\n/g, '<br>');
+
+  // Restore escaped chars
+  text = text.replace(new RegExp(`${ESC}(.)`, 'g'), '$1');
 
   // Restore code blocks
   text = text.replace(/CODEBLOCK_(\d+)_END/g, (_, i) => codeBlocks[i]);
 
   return text;
 }
+
   // Message image upload
   let fileInput;
   let imageError = '';
