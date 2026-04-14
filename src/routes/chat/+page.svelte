@@ -390,6 +390,7 @@ function parseMarkdown(text) {
   text = text
     .replace(new RegExp(`^${ESC}?### (.+)$`, 'gm'), '<span class="md-heading md-heading-3">$1</span>')
     .replace(new RegExp(`^${ESC}?## (.+)$`, 'gm'), '<span class="md-heading md-heading-2">$1</span>')
+    .replace(new RegExp(`^(?<!${ESC})-# (.+)$`, 'gm'), '<span class="md-heading md-heading-small">$1</span>')
     .replace(new RegExp(`^(?!##)# (.+)$`, 'gm'), '<span class="md-heading md-heading-1">$1</span>');
 
   // Bold + italic FIRST (order matters)
@@ -710,6 +711,7 @@ function parseMarkdown(text) {
   :global(.md-heading-1) { font-size: 2.5em; }
   :global(.md-heading-2) { font-size: 2em; }
   :global(.md-heading-3) { font-size: 1.5em; }
+  :global(.md-heading-small) { font-size: 0.8em; color: var(--subtext0); }
   :global(.msg-bubble strong) { color: var(--text); font-weight: bold; }
   :global(.msg-bubble em) { color: var(--subtext0); font-style: italic; }
   :global(.msg-bubble u) { text-decoration: underline; }
