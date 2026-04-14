@@ -381,6 +381,7 @@ function parseMarkdown(text) {
     .replace(/\n/g, '<br>')
     .replace(/^mc:\s*(.*?)$/gm, '<span class="mc-text">$1</span>')
     .replace(/\b(minecraft)\b/gi, '<span class="mc-text">$1</span>')
+    .replace(/^.\s*(.*?)$/gm, '<span class="pinktext">$1</span>')
 
   // Restore code blocks
   text = text.replace(/CODEBLOCK_(\d+)_END/g, (_, i) => codeBlocks[i]);
@@ -591,7 +592,7 @@ function parseMarkdown(text) {
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100..800&display=swap');
-  :root { --crust: #181926; --mantle: #1e2030; --base: #24273a; --surface0: #363a4f; --surface1: #494d64; --surface2: #5b6078; --overlay0: #6e738d; --overlay1: #8087a2; --subtext0: #a5adcb; --text: #cad3f5; --lavender: #b7bdf8; --blue: #8aadf4; --mauve: #c6a0f6; --green: #a6da95; --teal: #8bd5ca; --red: #ed8796; --peach: #f5a97f; --yellow: #eed49f; }
+  :root { --crust: #181926; --mantle: #1e2030; --base: #24273a; --surface0: #363a4f; --surface1: #494d64; --surface2: #5b6078; --overlay0: #6e738d; --overlay1: #8087a2; --subtext0: #a5adcb; --text: #cad3f5; --lavender: #b7bdf8; --blue: #8aadf4; --mauve: #c6a0f6; --green: #a6da95; --teal: #8bd5ca; --red: #ed8796; --peach: #f5a97f; --yellow: #eed49f; --pink: #f5bde6; }
   :global(html), :global(body) { margin: 0; padding: 0; width: 100vw; min-height: calc(var(--vh, 1vh) * 100); height: calc(var(--vh, 1vh) * 100); max-height: calc(var(--vh, 1vh) * 100); background: var(--base); color: var(--subtext0); overflow: hidden; overscroll-behavior: none; touch-action: pan-y; font-family: monospace; font-size: 15px; user-select: none; }:global(html), :global(body) { margin: 0; padding: 0; width: 100vw; min-height: calc(var(--vh, 1vh) * 100); height: calc(var(--vh, 1vh) * 100); max-height: calc(var(--vh, 1vh) * 100); background: var(--base); color: var(--subtext0); overflow: hidden; overscroll-behavior: none; touch-action: pan-y; font-family: 'JetBrains Mono', monospace; font-size: 15px; user-select: none; }
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none !important; font-family: inherit; user-select: none; }
   * {
@@ -678,6 +679,7 @@ function parseMarkdown(text) {
   :global(.msg-bubble .spoiler) { background: var(--surface2); color: transparent; text-shadow: 0 0 0 var(--surface2); border-radius: 3px; cursor: pointer; transition: background 0.2s ease, color 0.2s ease, text-shadow 0.2s ease; }
   :global(.msg-bubble .spoiler.revealed) { background: var(--base); color: var(--text); text-shadow: none; }
   :global(.msg-bubble .greentext) { color: var(--green); }
+  :global(.msg-bubble .pinktext) { color: var(--pink); }
   .msg.self .msg-bubble { background: var(--surface0); color: var(--text); }
 
 @font-face {
