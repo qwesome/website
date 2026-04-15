@@ -42,6 +42,56 @@
   let pendingHideId = null; // To track which sidebar item is confirming
   let hideTimer;
 
+  // --- Giphy GIF Picker Logic ---
+  let showGifPicker = false;
+  let gifQuery = '';
+  let gifResults = [];
+  let gifSearchTimer;
+  
+  const GIPHY_API_KEY = 'oWs2bVS6WYDiTzwFkXqarN3xbQMZAV8E'; 
+
+  function toggleGifPicker() {
+    showGifPicker = !showGifPicker;
+    if (showGifPicker && gifResults.length === 0) searchGifs('trending');
+  }
+
+  function handleGifInput() {
+    clearTimeout(gifSearchTimer);
+    gifSearchTimer = setTimeout(() => {
+      searchGifs(gifQuery || 'trending');
+    }, 500);
+  }
+
+  async function searchGifs(query) {
+    try {
+      const endpoint = query === 'trending' ? 'trending' : 'search';
+      const qParam = query === 'trending' ? '' : `&q=${encodeURIComponent(query)}`;
+      const res = await fetch(`https://api.giphy.com/v1/gifs/${endpoint}?api_key=${GIPHY_API_KEY}${qParam}&limit=20&rating=pg-13`);
+      const json = await res.json();
+      gifResults = json.data;
+    } catch (e) { console.error("Giphy fetch failed", e); }
+  }
+
+  function sendGif(gifUrl) {
+    const msg = { 
+      channel: activeChat.id, 
+      author: currentUser, 
+      text: '', // Empty text, just the GIF
+      image: gifUrl, 
+      ts: Date.now(),
+      isAdmin: adminMode,
+      reply_to: replyingTo ? replyingTo.id : null 
+    };
+    
+    if (socket) socket.emit('chat_message', msg);
+    
+    // Cleanup and close
+    showGifPicker = false;
+    gifQuery = '';
+    replyingTo = null;
+    scrollToBottom();
+  }
+
   async function hideConversation(partnerName) {
     const channelId = dmId(partnerName);
     
@@ -156,6 +206,7 @@ const handleGlobalKeyDown = (e) => {
     if (e.key === 'Escape') {
       if (replyingTo) cancelReply();
       if (editingId) cancelEdit();
+      if (showGifPicker) showGifPicker = false;
       return;
     }
 
@@ -231,11 +282,13 @@ onMount(() => {
     } catch {}
   }
 
-  async function scrollToBottom() {
-    await tick();
-    if (messageContainer) messageContainer.scrollTop = messageContainer.scrollHeight;
+async function scrollToBottom() {
+    // Tick ensures Svelte has finished updating the DOM with the new message
+    await tick(); 
+    if (messageContainer) {
+      messageContainer.scrollTop = messageContainer.scrollHeight;
+    }
   }
-
   function focusOnMount(node) {
     node.focus();
     if (node.value) {
@@ -526,7 +579,61 @@ socket.on('active_users', (serverUsersMap) => {
   function toggleSpoiler(event) { const spoiler = event.target.closest('.spoiler'); if (spoiler) spoiler.classList.toggle('revealed'); }
   function handleScrollBlur() { if (textareaElement && document.activeElement === textareaElement) textareaElement.blur(); }
 
-  function send() {
+// --- Link Embed Logic ---
+  let urlMetadataCache = {};
+
+  // Clean Svelte reactivity trigger
+  $: extractUrls(messages);
+
+function extractUrls(msgs) {
+    msgs.forEach(m => {
+      if (m.text) {
+        const urls = m.text.match(/https?:\/\/[^\s<"]+/g) || [];
+        urls.slice(0, 1).forEach(url => {
+          // NEW: Skip API call if it's a direct image file
+          if (url.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i)) return;
+
+          if (urlMetadataCache[url] === undefined) {
+            urlMetadataCache = { ...urlMetadataCache, [url]: null }; 
+            fetchMetadata(url);
+          }
+        });
+      }
+    });
+  }
+async function fetchMetadata(url) {
+    try {
+      // Use Microlink's free API to get clean, ready-to-use JSON metadata
+      const res = await fetch(`https://api.microlink.io?url=${encodeURIComponent(url)}`);
+      const json = await res.json();
+
+      if (json.status === 'success' && json.data) {
+        urlMetadataCache = {
+          ...urlMetadataCache,
+          [url]: {
+            title: json.data.title || new URL(url).hostname,
+            description: json.data.description || '',
+            // Fallback to the site logo if there's no big preview image
+            image: json.data.image?.url || json.data.logo?.url || '',
+            hostname: json.data.publisher || new URL(url).hostname
+          }
+        };
+      } else {
+        urlMetadataCache = { ...urlMetadataCache, [url]: { error: true } };
+      }
+    } catch (e) {
+      urlMetadataCache = { ...urlMetadataCache, [url]: { error: true } };
+    }
+  }
+
+  function decodeHTMLEntities(text) {
+    if (typeof document === 'undefined') return text;
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = text;
+    return textArea.value;
+  }
+
+async function send() {
     const text = msgInput.trim();
     if (!text || !currentUser) return;
     
@@ -536,29 +643,93 @@ socket.on('active_users', (serverUsersMap) => {
       text, 
       ts: Date.now(),
       isAdmin: adminMode,
-      // Add the ID of the message being replied to
       reply_to: replyingTo ? replyingTo.id : null 
     };
     
     if (socket) socket.emit('chat_message', msg);
+    
     msgInput = '';
-    replyingTo = null; // Clear the reply state after sending
+    replyingTo = null; 
+    
     if (textareaElement) textareaElement.style.height = 'auto';
+
+    // NEW: Force the jump to bottom immediately after sending
+    await scrollToBottom();
   }
 
-  function onKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
+function onKey(e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }
   function formatTime(ts) { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
 
-  function parseMarkdown(text) {
+function parseMarkdown(text) {
     const codeBlocks = [];
+    const ESC = '\uE000';
+
+    // Extract fenced code blocks first
     text = text.replace(/```([\s\S]+?)```/g, (_, code) => {
-      codeBlocks.push(`<div class="code-block"><pre><code>${code.replace(/&/g, '&amp;').replace(/</g, '&lt;')}</code></pre></div>`);
+      const escaped = code
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      codeBlocks.push(
+        `<div class="code-block"><pre><code>${escaped}</code></pre></div>`
+      );
+
       return `CODEBLOCK_${codeBlocks.length - 1}_END`;
     });
-    text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>');
-    text = text.replace(/\|\|(.+?)\|\|/g, '<span class="spoiler">$1</span>');
+
+    // Extract inline code
+    text = text.replace(/`([^`]+)`/gs, (_, code) => {
+      const escaped = code
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+
+      codeBlocks.push(`<code>${escaped}</code>`);
+      return `CODEBLOCK_${codeBlocks.length - 1}_END`;
+    });
+
+    // HTML escape
+    text = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+
+    // Link formatting (Added back in for your clickable links)
+    text = text.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener noreferrer" class="chat-link">$1</a>');
+
+    // Escape ANY escaped character
+    text = text.replace(/\\(.)/g, ESC + '$1');
+
+    // Headings (escape-aware)
+    text = text
+      .replace(new RegExp(`^${ESC}?### (.+)$`, 'gm'), '<span class="md-heading md-heading-3">$1</span>')
+      .replace(new RegExp(`^${ESC}?## (.+)$`, 'gm'), '<span class="md-heading md-heading-2">$1</span>')
+      .replace(new RegExp(`^(?<!${ESC})-# (.+)$`, 'gm'), '<span class="md-heading md-heading-small">$1</span>')
+      .replace(new RegExp(`^(?!##)# (.+)$`, 'gm'), '<span class="md-heading md-heading-1">$1</span>');
+
+    // Bold + italic (Properly ordered)
+    text = text
+      .replace(new RegExp(`(?<!${ESC})\\*\\*\\*(.+?)(?<!${ESC})\\*\\*\\*`, 'g'), '<strong><em>$1</em></strong>')
+      .replace(new RegExp(`(?<!${ESC})\\*\\*(.+?)(?<!${ESC})\\*\\*`, 'g'), '<strong>$1</strong>')
+      .replace(new RegExp(`(?<!${ESC})\\*(?!\\*)(.+?)(?<!${ESC})\\*`, 'g'), '<em>$1</em>')
+      .replace(new RegExp(`(?<!${ESC})__(.+?)(?<!${ESC})__`, 'g'), '<u>$1</u>')
+      .replace(new RegExp(`(?<!${ESC})~~(.+?)(?<!${ESC})~~`, 'g'), '<s>$1</s>')
+      .replace(new RegExp(`(?<!${ESC})\\|\\|(.+?)(?<!${ESC})\\|\\|`, 'g'), '<span class="spoiler">$1</span>');
+
+    // Greentext
+    text = text.replace(/^&gt;(.*?)$/gm, '<span class="greentext">&gt;$1</span>');
+
+    // Minecraft & Pinktext
+    text = text.replace(/^mc:\s*(.*?)$/gm, '<span class="mc-text">$1</span>');
+    text = text.replace(/minecraft/gi, '<span class="mc-text">Minecraft</span>');
+    text = text.replace(/^\s*\.(\s*)(.*?)$/gm, '<span class="pinktext">$2</span>');
+
+    // Newlines
     text = text.replace(/\n/g, '<br>');
+
+    // Restore escaped chars and code blocks
+    text = text.replace(new RegExp(`${ESC}(.)`, 'g'), '$1');
     return text.replace(/CODEBLOCK_(\d+)_END/g, (_, i) => codeBlocks[i]);
   }
 
@@ -609,6 +780,19 @@ function onFileChange(e) {
   }
 
   let lightboxSrc = null;
+
+function clickOutside(node) {
+    const handleClick = (e) => {
+      // Close if clicking outside the picker AND not clicking the GIF button
+      if (!node.contains(e.target) && !e.target.closest('.gif-toggle-btn')) {
+        showGifPicker = false;
+      }
+    };
+    
+    document.addEventListener('pointerdown', handleClick, true);
+    return { destroy: () => document.removeEventListener('pointerdown', handleClick, true) };
+  }
+
 </script>
 
 <svelte:window 
@@ -748,10 +932,10 @@ function onFileChange(e) {
           {m.author[0].toUpperCase()}
         {/if}
       </div>
-      
-      <div class="msg-body">
-<div class="msg-meta">
-          <span class="msg-author">{m.author}</span>
+  
+<div class="msg-body">
+        <div class="msg-meta">
+          <span class="msg-author" data-author={m.author}>{m.author}</span>
           <span class="msg-time">{formatTime(m.ts)}</span>
           
           <button class="delete-btn" onclick={() => setReply(m)} title="Reply">
@@ -820,8 +1004,32 @@ function onFileChange(e) {
               {@html parseMarkdown(m.text)}
               {#if m.edited}<span class="edited-tag">(edited)</span>{/if}
             </div>
+            
+            {#if m.text}
+              {@const urls = m.text.match(/https?:\/\/[^\s<"]+/g) || []}
+              {#each urls.slice(0, 1) as url}
+                {#if url.match(/\.(jpeg|jpg|gif|png|webp)(\?.*)?$/i)}
+                  <div class="image-embed">
+                    <img src={url} alt="inline embed" class="msg-image" onclick={() => lightboxSrc = url} />
+                  </div>
+                {:else if urlMetadataCache[url] && !urlMetadataCache[url].error}
+                  <a href={url} target="_blank" rel="noopener noreferrer" class="embed-card">
+                    {#if urlMetadataCache[url].image}
+                      <img src={urlMetadataCache[url].image} alt="embed" class="embed-image" />
+                    {/if}
+                    <div class="embed-info">
+                      <div class="embed-site">{urlMetadataCache[url].hostname}</div>
+                      <div class="embed-title">{urlMetadataCache[url].title}</div>
+                      {#if urlMetadataCache[url].description}
+                        <div class="embed-desc">{urlMetadataCache[url].description}</div>
+                      {/if}
+                    </div>
+                  </a>
+                {/if}
+              {/each}
+            {/if}
           {/if}
-        {/if}
+{/if}
       </div>
     </div>
   {/each}
@@ -848,6 +1056,30 @@ function onFileChange(e) {
 </div>
   {/if}
 
+{#if showGifPicker}
+    <div class="gif-picker" use:clickOutside>
+      <div class="gif-header">
+        <input 
+          type="text" 
+          placeholder="Search Giphy..." 
+          bind:value={gifQuery} 
+          oninput={handleGifInput} 
+          use:focusOnMount 
+        />
+        </div>
+      <div class="gif-grid">
+        <div class="gif-masonry">
+          {#each gifResults as gif}
+            <img 
+              src={gif.images.fixed_height_small.url} 
+              alt={gif.title} 
+              onclick={() => sendGif(gif.images.fixed_height.url)} 
+            />
+          {/each}
+        </div>
+      </div>
+    </div>
+  {/if}
 <div class="input-wrap">
   <textarea
     bind:this={textareaElement}
@@ -860,12 +1092,19 @@ function onFileChange(e) {
   </textarea>
   
   <input type="file" accept="image/*" bind:this={fileInput} onchange={onFileChange} style="display:none" />
+  
+<button class="upload-btn gif-toggle-btn" type="button" onclick={toggleGifPicker} title="send a gif" style="font-weight: 800; font-size: 13px;">
+    GIF
+  </button>
+    
 <button class="upload-btn" type="button" onpointerdown={handleButtonPress} onclick={handleUploadClick} title="upload image">
   <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
   </svg>
 </button>
-</div></div>  </div>
+</div>
+  </div>
+  </div>
 </div>
 {/if}
 
@@ -882,6 +1121,12 @@ function onFileChange(e) {
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none !important; font-family: inherit; user-select: none; }
   * { -webkit-tap-highlight-color: transparent; }
   
+.image-embed {
+    margin-top: 8px;
+    display: block;
+    max-width: fit-content;
+  }
+
   .auth { position: fixed; inset: 0; width: 100vw; height: calc(var(--vh, 1vh) * 100); min-height: calc(var(--vh, 1vh) * 100); display: flex; align-items: center; justify-content: center; background: var(--base); }
   .auth-box { width: 360px; background: var(--mantle); border: 1px solid var(--surface0); padding: 40px; }
   .auth-box h2 { color: var(--mauve); font-size: 14px; letter-spacing: .15em; margin-bottom: 28px; }
@@ -972,6 +1217,7 @@ function onFileChange(e) {
     display: flex; 
     flex-direction: column; 
     padding: 15px 24px calc(20px + env(safe-area-inset-bottom, 12px)); 
+    position: relative; /* CRUCIAL for the GIF picker */
   }
 
   /* The Container Logic */
@@ -1019,6 +1265,16 @@ function onFileChange(e) {
     max-width: 90%;
     word-break: break-word;
   }
+  
+  :global(.pinktext) { color: var(--pink); }
+  :global(.greentext) { color: var(--green); }
+  :global(.mc-text) { font-family: 'Minecraft', monospace; font-size: 16px; color: var(--text); }
+  
+  :global(.chat-link) { color: var(--blue); text-decoration: none; }
+  :global(.chat-link:hover) { text-decoration: underline; }
+
+  /* Ensure headings look right inside the bubble */
+  :global(.msg-bubble .md-heading) { display: block; margin: 4px 0; color: var(--text); }
 
   .msg-bubble { display: block; background: var(--mantle); border: 1px solid var(--surface0); border-radius: 6px; padding: 10px 14px; font-size: 15px; color: var(--subtext0); line-height: normal; max-width: 100%; width: fit-content; word-wrap: break-word; user-select: text; }
   :global(.msg-bubble code) { background: var(--crust); color: var(--text); padding: 1px 5px; border-radius: 3px; font-size: 15px; white-space: pre-wrap; display: inline-block; max-width: 100%; vertical-align: baseline; } 
@@ -1052,20 +1308,43 @@ function onFileChange(e) {
     color: var(--text);
   }
 
-  .input-bar { padding: 15px 24px calc(20px + env(safe-area-inset-bottom, 12px)); }
   .input-wrap { display: flex; background: var(--mantle); border: 1px solid var(--surface0); border-radius: 8px; align-items: center; }
   .input-wrap:focus-within { border-color: var(--mauve); }
   textarea { all: unset; flex: 1; color: var(--text); font-size: 15px; padding: 12px 18px; resize: none; overflow-y: hidden; overflow-wrap: break-word; word-break: break-word; white-space: pre-wrap; max-height: 150px; box-sizing: border-box; line-height: 1.5; user-select: text; cursor: text; }
   textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .upload-btn { all: unset; border: 2px solid var(--surface0) !important; color: var(--overlay0); padding: 0 16px; cursor: pointer; font-size: 22px; height: 50px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; align-self: stretch; user-select: none; border-radius: 0 8px 8px 0; transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, opacity 0.25s ease; }
+  .upload-btn { all: unset; border: 2px solid var(--surface0) !important; color: var(--overlay0); padding: 0 16px; cursor: pointer; font-size: 22px; height: 50px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; align-self: stretch; user-select: none; transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, opacity 0.25s ease; }
+  .upload-btn:last-child { border-radius: 0 8px 8px 0; }
   .upload-btn.selected { color: var(--mauve); background: var(--surface0); border-color: var(--mauve) !important; opacity: 0.85; }
+  .upload-btn:hover { color: var(--mauve); }
   .char-count { font-size: 11px; color: var(--overlay0); text-align: right; padding: 4px 4px 0; }
   .char-count.warn { color: var(--peach); }
   .msg-image { max-width: 320px; max-height: 240px; border-radius: 6px; cursor: pointer; display: block; border: 1px solid var(--surface0); }
   .msg-image:hover { border-color: var(--mauve); }
-  .lightbox { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; z-index: 100; cursor: pointer; }
-  .lightbox img { max-width: 90vw; max-height: 90vh; border-radius: 6px; }
+.lightbox {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.9); /* Darker backdrop */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
 
+.lightbox img {
+    /* Set your predetermined sizes here */
+    width: 800px;           /* The "standard" width you want */
+    height: 800px;          /* The "standard" height you want */
+    
+    /* Responsive guards: ensure it doesn't break small screens */
+    max-width: 95vw;        
+    max-height: 85vh;
+    
+    /* Magic: forces the image to scale inside that box without stretching */
+    object-fit: contain;    
+    
+    border-radius: 8px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+  }
   /* Mobile Exclusive Rules */
   @media (max-width: 768px) {
     .sidebar { position: fixed; top: 0; left: 0; width: 100vw; height: calc(var(--vh, 1vh) * 100); z-index: 50; }
@@ -1407,4 +1686,156 @@ function onFileChange(e) {
   opacity: 1 !important;
   color: var(--red) !important;
 }
+
+/* --- GIF Picker Styles --- */
+  .gif-picker {
+    position: absolute;
+    bottom: calc(100% - 10px);
+    right: 24px;
+    width: 320px;
+    height: 350px;
+    background: var(--mantle);
+    border: 1px solid var(--surface0);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    z-index: 100;
+    overflow: hidden;
+  }
+
+  .gif-header {
+    display: flex;
+    padding: 10px;
+    background: var(--crust);
+    border-bottom: 1px solid var(--surface0);
+  }
+
+  .gif-header input {
+    all: unset;
+    flex: 1;
+    background: var(--mantle);
+    color: var(--text);
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    border: 1px solid var(--surface0);
+    transition: border-color 0.2s;
+  }
+
+  .gif-header input:focus {
+    border-color: var(--mauve);
+  }
+
+  .gif-header button {
+    all: unset;
+    cursor: pointer;
+    color: var(--overlay0);
+    padding: 0 10px;
+    font-weight: bold;
+    font-size: 16px;
+    transition: color 0.2s;
+  }
+
+  .gif-header button:hover {
+    color: var(--red);
+  }
+
+/* 1. The Scrollable Container */
+  .gif-grid {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--surface2) transparent;
+  }
+
+  /* 2. The Masonry Layout (grows infinitely tall) */
+  .gif-masonry {
+    column-count: 2;
+    column-gap: 4px;
+    width: 100%;
+  }
+
+  /* 3. The Images */
+  .gif-masonry img {
+    width: 100%;
+    height: auto;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    break-inside: avoid; /* Prevents splitting an image across columns */
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .gif-masonry img:hover {
+    opacity: 0.7;
+  }
+
+  /* --- Link & Embed Styles --- */
+  :global(.chat-link) { 
+    color: var(--blue); 
+    text-decoration: none; 
+    word-break: break-all;
+  }
+  :global(.chat-link:hover) { 
+    text-decoration: underline; 
+  }
+
+  .embed-card {
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+    border-left: 4px solid var(--surface2);
+    background: var(--crust);
+    border-radius: 4px;
+    overflow: hidden;
+    max-width: 400px;
+    text-decoration: none;
+    color: inherit;
+    transition: border-color 0.2s;
+  }
+
+  .embed-card:hover { 
+    border-color: var(--mauve); 
+  }
+
+  .embed-image { 
+    width: 100%; 
+    max-height: 200px; 
+    object-fit: cover; 
+    display: block;
+  }
+
+  .embed-info { 
+    padding: 10px 12px; 
+    display: flex; 
+    flex-direction: column; 
+    gap: 4px; 
+  }
+
+  .embed-site { 
+    font-size: 11px; 
+    color: var(--mauve); 
+    font-weight: bold; 
+    text-transform: uppercase; 
+  }
+
+  .embed-title { 
+    font-size: 14px; 
+    color: var(--blue); 
+    font-weight: bold; 
+  }
+
+  .embed-desc { 
+    font-size: 12px; 
+    color: var(--subtext0); 
+    display: -webkit-box; 
+    -webkit-line-clamp: 2; 
+    -webkit-box-orient: vertical; 
+    overflow: hidden; 
+    line-height: 1.4; 
+  }
 </style>
