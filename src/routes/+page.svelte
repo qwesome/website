@@ -13,6 +13,7 @@
     bb:      { x: null, y: null, w: 520,  h: 580,  zIndex: 1, open: false },
     piano:   { x: null, y: null, w: 660,  h: 520,  zIndex: 1, open: false },
     songs:   { x: null, y: null, w: 500,  h: 400,  zIndex: 1, open: false },
+    yt:   { x: null, y: null, w: 1000,  h: 700,  zIndex: 1, open: false },
     retro:   { x: null, y: null, w: 340,  h: 500,  zIndex: 1, open: false },
   };
   
@@ -240,6 +241,7 @@
       <button on:click={e => openWindow('piano', e)}>Piano</button>
       <button on:click={e => openWindow('songs', e)}>Piano Songs</button>
       <a href="/cheats" target="_blank" rel="noopener noreferrer"><button>Exam Feature Tester</button></a>
+      <button on:click={e => openWindow('yt', e)}>Youtube 2009</button>
       <button on:click={e => openWindow('retro', e)}>Retro Games</button>
       <a href="/chat" target="_blank" rel="noopener noreferrer"><button>Chatroom</button></a>
     </div>
@@ -427,6 +429,41 @@
     <iframe
       src="/songs.html"
       title="Piano Songs"
+      style="border:none; display:block; width:100%; height:100%; background:white;"
+    ></iframe>
+  </div>
+</div>
+{/if}
+
+{#if windows.yt.open && windows.yt.x !== null}
+<div
+  class="window"
+  class:active={activeWindow === 'yt'}
+  style="left:{windows.yt.x}px; top:{windows.yt.y}px; width:{windows.yt.w}px; height:{windows.yt.h}px; z-index:{windows.yt.zIndex};"
+  on:mousedown={() => bringToFront('yt')}
+  data-id="yt"
+>
+  <div class="resize n"  on:mousedown={e => startResize(e, 'yt', 'n')}></div>
+  <div class="resize s"  on:mousedown={e => startResize(e, 'yt', 's')}></div>
+  <div class="resize e"  on:mousedown={e => startResize(e, 'yt', 'e')}></div>
+  <div class="resize w"  on:mousedown={e => startResize(e, 'yt', 'w')}></div>
+  <div class="resize nw" on:mousedown={e => startResize(e, 'yt', 'nw')}></div>
+  <div class="resize ne" on:mousedown={e => startResize(e, 'yt', 'ne')}></div>
+  <div class="resize sw" on:mousedown={e => startResize(e, 'yt', 'sw')}></div>
+  <div class="resize se" on:mousedown={e => startResize(e, 'yt', 'se')}></div>
+  
+  <div class="title-bar" on:mousedown={e => startDrag(e, 'yt')}>
+    <div class="title-bar-text">YouTube</div>
+    <div class="title-bar-controls">
+      <button aria-label="Minimize"></button>
+      <button aria-label="Maximize" on:click={() => window.open('https://youtube.studiobean.com/', '_blank')}></button>
+      <button aria-label="Close" on:click={() => closeWindow('yt')}></button>
+    </div>
+  </div>
+  <div class="window-body has-scrollbar" style="padding:0; overflow:hidden;">
+    <iframe
+      src="https://yt.studiobean.com/"
+      title="YouTube"
       style="border:none; display:block; width:100%; height:100%; background:white;"
     ></iframe>
   </div>
