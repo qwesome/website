@@ -1,5 +1,6 @@
 <svelte:head>
 <link rel="stylesheet" href="/7.css">
+  <link rel="icon" type="image/png" href="/favicon.png" />
 </svelte:head>
 
 <script>
@@ -244,6 +245,7 @@
       <button on:click={e => openWindow('yt', e)}>Youtube 2009</button>
       <button on:click={e => openWindow('retro', e)}>Retro Games</button>
       <a href="/chat" target="_blank" rel="noopener noreferrer"><button>Chatroom</button></a>
+      <a href="/unblocked" target="_blank" rel="noopener noreferrer"><button>Unblocked Games</button></a>
     </div>
   </div>
 </div>
