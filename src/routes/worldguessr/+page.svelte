@@ -3,17 +3,18 @@
 
   const API_KEY = "AIzaSyDU2BOzgA6xtjswS3pjuncZjfWMwuU7klg";
 
+  // Database now only stores the raw coordinates
   const locations = [
-    { location: "-43.3741894,172.6653052", heading: 210, pitch: 10 },
-    { location: "48.8584,2.2945", heading: 210, pitch: 10 },
-    { location: "35.6762,139.6503", heading: 90, pitch: 0 },
-    { location: "-33.8688,151.2093", heading: 45, pitch: 5 },
-    { location: "40.7128,-74.0060", heading: 180, pitch: 0 },
-    { location: "51.5074,-0.1278", heading: 90, pitch: 0 },
-    { location: "-22.9068,-43.1729", heading: 0, pitch: 0 },
-    { location: "55.7558,37.6173", heading: 270, pitch: 0 },
-    { location: "1.3521,103.8198", heading: 135, pitch: 0 },
-    { location: "41.9028,12.4964", heading: 60, pitch: 5 },
+    "-43.3741894,172.6653052",
+    "48.8584,2.2945",
+    "35.6762,139.6503",
+    "-33.8688,151.2093",
+    "40.7128,-74.0060",
+    "51.5074,-0.1278",
+    "-22.9068,-43.1729",
+    "55.7558,37.6173",
+    "1.3521,103.8198",
+    "41.9028,12.4964",
   ];
 
   // Catppuccin Mocha Colors (Actual colors only)
@@ -53,7 +54,16 @@
   let timerInterval = null;
   let timeLeft = null;
 
-  let current = locations[Math.floor(Math.random() * locations.length)];
+  // Generates random camera angles for the selected location
+  function getRandomLocation() {
+    const coords = locations[Math.floor(Math.random() * locations.length)];
+    const heading = Math.floor(Math.random() * 360); // 0 to 359 degrees
+    const pitch = Math.floor(Math.random() * 31) - 15; // -15 to +15 degrees
+    
+    return { location: coords, heading, pitch };
+  }
+
+  let current = getRandomLocation();
   let src = '';
   let guessPlaced = false;
   let map = null;
@@ -157,7 +167,7 @@
       setTimeout(() => map.invalidateSize(), 100);
     }
     
-    current = locations[Math.floor(Math.random() * locations.length)];
+    current = getRandomLocation();
     iframeKey += 1; 
 
     if (timerInterval) clearInterval(timerInterval);
