@@ -246,6 +246,7 @@
       <button on:click={e => openWindow('retro', e)}>Retro Games</button>
       <a href="/chat" target="_blank" rel="noopener noreferrer"><button>Chatroom</button></a>
       <a href="/unblocked" target="_blank" rel="noopener noreferrer"><button>Unblocked Games</button></a>
+      <a href="/worldguessr" target="_blank" rel="noopener noreferrer"><button>Worldguessr</button></a>
     </div>
   </div>
 </div>
