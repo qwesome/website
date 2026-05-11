@@ -4,21 +4,33 @@
   const API_KEY = "AIzaSyDU2BOzgA6xtjswS3pjuncZjfWMwuU7klg";
   const API_BASE = "https://geoapi.studiobean.com/api";
 
-  const locations = [
-    "-43.3741894,172.6653052",
-    "-43.3653743,172.6676274",
-    "-43.3746426,172.6528684",
-    "-43.4873369,172.5465221",
-    "48.8584,2.2945",
-    "35.6762,139.6503",
-    "-33.8688,151.2093",
-    "40.7128,-74.0060",
-    "51.5074,-0.1278",
-    "-22.9068,-43.1729",
-    "55.7558,37.6173",
-    "1.3521,103.8198",
-    "41.9028,12.4964",
-  ];
+  const maps = [
+  {
+    id: 'worldwide',
+    name: 'Worldwide',
+    file: '/worldguessr/maps/worldwide.json',
+  },
+  {
+    id: 'europe',
+    name: 'Europe',
+    file: '/worldguessr/maps/europe.json',
+  },
+  {
+    id: 'nz',
+    name: 'New Zealand',
+    file: '/worldguessr/maps/nz.json',
+  },
+  {
+    id: 'canterbury',
+    name: '(NZ) Canterbury',
+    file: '/worldguessr/maps/canterbury.json',
+  },
+    {
+    id: 'usa',
+    name: 'United States',
+    file: '/worldguessr/maps/usa.json',
+  },
+];
 
   const catppuccinColors = [
     { name: 'Rosewater', hex: '#f5e0dc' },
@@ -190,12 +202,49 @@ async function syncGame(totalScore) {
   let timerInterval = null;
   let timeLeft = null;
 
-  function getRandomLocation() {
-    const coords  = locations[Math.floor(Math.random() * locations.length)];
-    const heading = Math.floor(Math.random() * 360);
-    const pitch   = Math.floor(Math.random() * 31) - 15;
-    return { location: coords, heading, pitch };
+  let selectedMap = 'worldwide';
+  let loadedMapLocations = [];
+
+  async function loadMapLocations(mapId) {
+  const selected = maps.find(m => m.id === mapId) || maps[0];
+
+  try {
+    const res = await fetch(selected.file);
+
+    if (!res.ok) {
+      throw new Error(`Failed to load ${selected.file}`);
+    }
+
+    loadedMapLocations = await res.json();
+  } catch (e) {
+    console.error('Map loading failed:', e);
+    loadedMapLocations = [];
   }
+}
+
+function getRandomLocation() {
+  if (!loadedMapLocations.length) {
+    return {
+      location: '0,0',
+      heading: 0,
+      pitch: 0,
+    };
+  }
+
+  const point =
+    loadedMapLocations[
+      Math.floor(Math.random() * loadedMapLocations.length)
+    ];
+
+  const heading = Math.floor(Math.random() * 360);
+  const pitch = Math.floor(Math.random() * 31) - 15;
+
+  return {
+    location: `${point.lat},${point.lng}`,
+    heading,
+    pitch,
+  };
+}
 
   let current = getRandomLocation();
   let src = '';
@@ -261,7 +310,9 @@ async function syncGame(totalScore) {
     } catch { return 'Unknown Location'; }
   }
 
-  function startGame() {
+  async function startGame() {
+    await loadMapLocations(selectedMap);
+    
     currentRound = 1;
     totalScore   = 0;
     roundHistory = [];
@@ -486,6 +537,8 @@ async function syncGame(totalScore) {
   onMount(async () => {
     loadSession();
 
+    await loadMapLocations(selectedMap);
+
     await new Promise((resolve) => {
       const link = document.createElement('link'); link.rel = 'stylesheet'; link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'; document.head.appendChild(link);
       const script = document.createElement('script'); script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'; script.onload = resolve; document.head.appendChild(script);
@@ -685,7 +738,14 @@ async function syncGame(totalScore) {
 
             <div class="option-row">
               <span>Map</span>
-              <span class="option-val">World</span>
+
+              <div class="setting-controls">
+                <select bind:value={selectedMap} class="dropdown">
+                  {#each maps as map}
+                    <option value={map.id}>{map.name}</option>
+                  {/each}
+                </select>
+              </div>
             </div>
 
             <div class="options-actions">
