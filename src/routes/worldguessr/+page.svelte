@@ -30,6 +30,11 @@
     name: 'United States',
     file: '/worldguessr/maps/usa.json',
   },
+    {
+    id: 'jfp',
+    name: 'Jack Pepper\'s House',
+    file: '/worldguessr/maps/jfp.json',
+  },
 ];
 
   const catppuccinColors = [
