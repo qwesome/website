@@ -22,7 +22,7 @@
   },
   {
     id: 'canterbury',
-    name: '(NZ) Canterbury',
+    name: 'Canterbury (NZ)',
     file: '/worldguessr/maps/canterbury.json',
   },
     {
