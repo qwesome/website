@@ -1,4 +1,4 @@
-import { BUILTIN_THEMES, getTheme, resolveThemeTokens } from '../themes';
+import { getTheme, resolveThemeTokens } from '../themes';
 import type { AppearanceSettings, CustomTheme, ThemeDefinition } from '../themes/types';
 import { api } from '../api/client';
 
@@ -48,12 +48,12 @@ export class AppearanceState {
     this.applyToDOM();
 
     // Debounced sync to server
-    api('/settings', { method: 'PUT', body: { settings } }).catch(() => {});
+    api('/api/settings', { method: 'PUT', json: { settings } }).catch(() => {});
   }
 
   async loadFromServer() {
     try {
-      const res = await api<{ settings: AppearanceSettings }>('/settings');
+      const res = await api<{ settings: AppearanceSettings }>('/api/settings');
       if (res.settings && Object.keys(res.settings).length > 0) {
         if (res.settings.mode) this.mode = res.settings.mode;
         if (res.settings.darkTheme) this.darkTheme = res.settings.darkTheme;

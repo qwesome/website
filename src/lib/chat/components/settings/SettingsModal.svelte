@@ -84,8 +84,8 @@
 <svelte:window onkeydown={handleKeydown} />
 
 {#if open}
-  <div class="modal-backdrop" onclick={close} role="presentation">
-    <div class="modal-body" onclick={(e) => e.stopPropagation()} role="dialog">
+  <div class="modal-backdrop" onclick={close} onkeydown={(e) => e.key === 'Escape' && close()} role="presentation">
+    <div class="modal-body" onclick={(e) => e.stopPropagation()} onkeydown={(e) => e.stopPropagation()} role="dialog" tabindex="-1">
       <header class="modal-header">
         <h2>settings</h2>
         <button class="icon-btn" onclick={close} aria-label="Close modal">
@@ -152,6 +152,7 @@
                       class:selected={(draftAccents[activeSelectedTheme.id] || activeSelectedTheme.defaultAccent) === acc.id}
                       style="background: {acc.value}"
                       title={acc.name}
+                      aria-label={acc.name}
                       onclick={() => {
                         draftAccents[activeSelectedTheme.id] = acc.id;
                         markDirty();
