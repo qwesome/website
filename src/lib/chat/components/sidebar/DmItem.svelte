@@ -18,7 +18,7 @@
   async function hide() {
     if (!auth.user) return;
     try {
-      await hideConversation(auth.user, id);
+      await hideConversation(id);
       await conversations.load();
       if (active) goto(channelHref('global'));
     } catch (e) {

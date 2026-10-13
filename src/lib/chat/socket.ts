@@ -37,19 +37,18 @@ export function disconnect() {
   socket = null;
 }
 
-// NOTE: `author` and `isAdmin` are sent ONLY because the current server trusts
-// them. Once the server derives both from the authenticated socket, delete them
-// from the three emitters below.
+// The server derives `author` and `isAdmin` from the socket's session token,
+// so the payloads below carry no client-supplied identity.
 export function sendMessage(msg: OutgoingMessage) {
-  socket?.emit('chat_message', { ...msg, author: auth.user, isAdmin: auth.adminMode });
+  socket?.emit('chat_message', msg);
 }
 
 export function editMessage(p: { id: MessageId; channel: string; newText: string }) {
-  socket?.emit('edit_message', { ...p, author: auth.user, isAdmin: auth.adminMode });
+  socket?.emit('edit_message', p);
 }
 
 export function deleteMessage(p: { id: MessageId; channel: string }) {
-  socket?.emit('delete_message', { ...p, author: auth.user, isAdmin: auth.adminMode });
+  socket?.emit('delete_message', p);
 }
 
 export function setStatus(status: 'online' | 'away') {

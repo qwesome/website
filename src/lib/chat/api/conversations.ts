@@ -1,8 +1,8 @@
 import { api } from './client';
 import type { Conversation } from '../types';
 
-export const fetchConversations = (username: string) =>
-  api<Conversation[]>(`/api/conversations/${encodeURIComponent(username)}`);
+export const fetchConversations = () => api<Conversation[]>(`/api/conversations`);
 
-export const hideConversation = (username: string, channel: string) =>
-  api<{ message: string }>('/api/conversations/hide', { method: 'POST', json: { username, channel } });
+// The server reads the user from the session token.
+export const hideConversation = (channel: string) =>
+  api<{ message: string }>('/api/conversations/hide', { method: 'POST', json: { channel } });

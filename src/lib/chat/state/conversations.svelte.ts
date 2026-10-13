@@ -12,7 +12,7 @@ class Conversations {
     const me = auth.user;
     if (!me) return;
     try {
-      this.list = await fetchConversations(me);
+      this.list = await fetchConversations();
       for (const c of this.list) avatars.ensure(c.username);
     } catch (e) {
       console.error(e);

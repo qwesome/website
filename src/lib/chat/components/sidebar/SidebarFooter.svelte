@@ -17,7 +17,7 @@
     if (!auth.user) return;
     error = '';
     try {
-      await setAvatar(auth.user, avatar);
+      await setAvatar(avatar);
       avatars.set(auth.user, avatar);
     } catch (e) {
       error = e instanceof Error ? e.message : 'upload failed';
