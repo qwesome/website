@@ -3,9 +3,11 @@ import type { FriendsData } from '../types';
 
 export const fetchFriends = async () => await api<FriendsData>('/api/friends');
 
-export const requestFriend = async (username: string) => {
-  await api('/api/friends/request', { method: 'POST', json: { username } });
-};
+export const requestFriend = async (username: string) =>
+  await api<{ status: 'pending' | 'accepted'; target: string; friend?: string }>('/api/friends/request', {
+    method: 'POST',
+    json: { username }
+  });
 
 export const respondFriend = async (username: string, accept: boolean) => {
   await api('/api/friends/respond', { method: 'POST', json: { username, accept } });

@@ -1,4 +1,5 @@
 import { io, type Socket } from 'socket.io-client';
+import { goto } from '$app/navigation';
 import { SERVER_URL } from './config';
 import { auth } from './state/auth.svelte';
 import { messages } from './state/messages.svelte';
@@ -6,8 +7,10 @@ import { presence } from './state/presence.svelte';
 import { avatars } from './state/avatars.svelte';
 import { servers } from './state/servers.svelte';
 import { friends } from './state/friends.svelte';
+import { ui } from './state/ui.svelte';
 import { handleIncoming } from './notify';
-import type { Message, MessageId, OutgoingMessage, ServerChannel, Status } from './types';
+import { channelHref, homeHref } from './utils/route';
+import type { Message, MessageId, OutgoingMessage, Server, ServerChannel, Status } from './types';
 
 let socket: Socket | null = null;
 
@@ -50,6 +53,15 @@ export function connect() {
     messages.clearChannel(String(channelId));
   });
   socket.on('friend_update', () => friends.load());
+  socket.on('server_updated', ({ server }: { server: Server }) => servers.applyUpdated(server));
+  socket.on('server_member_removed', () => servers.bumpMembers());
+  socket.on('server_kicked', ({ serverId }: { serverId: number }) => {
+    const channels = servers.removeServer(serverId);
+    if (channels.includes(ui.activeChannel ?? '')) {
+      const def = servers.defaultChannel();
+      goto(def ? channelHref(def.server.id, def.channel.id) : homeHref());
+    }
+  });
 }
 
 export function disconnect() {

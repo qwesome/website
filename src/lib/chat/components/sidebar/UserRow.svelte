@@ -36,18 +36,23 @@
 <div class="row" role="group" class:active oncontextmenu={onContextMenu}>
   {#if href}
     <a class="link" href={href} onclick={() => (ui.sidebarOpen = false)}>
-      <Avatar name={username} size={30} />
+      <span class="pfp">
+        <Avatar name={username} size={30} />
+        <span class="dot {status}" title={statusLabel}></span>
+      </span>
       <span class="name">{username}</span>
     </a>
   {:else}
     <span class="link static">
-      <Avatar name={username} size={30} />
+      <span class="pfp">
+        <Avatar name={username} size={30} />
+        <span class="dot {status}" title={statusLabel}></span>
+      </span>
       <span class="name">{username}</span>
     </span>
   {/if}
 
   <span class="side">
-    <span class="dot {status}" title={statusLabel}></span>
     {#if unreadId && unread.has(unreadId)}<span class="unread-dot"></span>{/if}
     {#if children}<span class="extra">{@render children()}</span>{/if}
   </span>
@@ -60,13 +65,15 @@
   .link { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; padding: 8px 0 8px 20px; color: inherit; text-decoration: none; cursor: pointer; }
   .row.active .link { padding-left: 17px; }
   .link.static { cursor: default; }
-  .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .side { display: flex; align-items: center; gap: 6px; padding-right: 14px; flex-shrink: 0; }
-  .row.active .side { padding-right: 11px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .pfp { position: relative; width: 30px; height: 30px; flex-shrink: 0; line-height: 0; }
+  .pfp :global(.avatar) { border-radius: 50%; }
+  .dot { position: absolute; top: -1px; right: -1px; width: 10px; height: 10px; border-radius: 50%; border: 2px solid var(--mantle); box-sizing: content-box; }
   .dot.online { background: var(--green); }
   .dot.away { background: var(--yellow); }
   .dot.offline { background: var(--surface2); }
+  .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .side { display: flex; align-items: center; gap: 6px; padding-right: 14px; flex-shrink: 0; }
+  .row.active .side { padding-right: 11px; }
   .unread-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--red); flex-shrink: 0; }
   .extra { display: inline-flex; align-items: center; gap: 4px; }
 </style>

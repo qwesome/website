@@ -1,12 +1,16 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
-  import { createServer, joinServer } from '../../api/servers';
+  import { createServer, fetchPublicServers, joinServer } from '../../api/servers';
   import { servers } from '../../state/servers.svelte';
   import { refreshServers } from '../../socket';
   import { channelHref, homeHref } from '../../utils/route';
+  import type { PublicServer } from '../../types';
   import Icon from '../ui/Icon.svelte';
 
-  let { open = $bindable(false) }: { open: boolean } = $props();
+  let {
+    open = $bindable(false),
+    initialTab = 'create'
+  }: { open: boolean; initialTab?: 'create' | 'join' } = $props();
 
   let tab = $state<'create' | 'join'>('create');
   let name = $state('');
@@ -15,16 +19,31 @@
   let joinKey = $state('');
   let error = $state('');
   let busy = $state(false);
+  let publicServers = $state<PublicServer[]>([]);
 
   $effect(() => {
     if (open) {
-      tab = 'create';
+      tab = initialTab;
       name = '';
       iconData = null;
       joinKey = '';
       error = '';
+      publicServers = [];
+      loadPublic();
     }
   });
+
+  async function loadPublic() {
+    try {
+      publicServers = await fetchPublicServers();
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  function refreshPublic() {
+    loadPublic();
+  }
 
   async function onIcon(file: File | undefined | null) {
     if (!file) return;
@@ -37,6 +56,19 @@
     const reader = new FileReader();
     reader.onload = () => (iconData = String(reader.result));
     reader.readAsDataURL(file);
+  }
+
+  async function join(key: string | number) {
+    busy = true;
+    error = '';
+    try {
+      const server = await joinServer(key);
+      done(server);
+    } catch (e) {
+      error = e instanceof Error ? e.message : 'failed to join server';
+    } finally {
+      busy = false;
+    }
   }
 
   async function submit() {
@@ -63,16 +95,7 @@
         error = 'enter the invite code or server id';
         return;
       }
-      busy = true;
-      error = '';
-      try {
-        const server = await joinServer(key);
-        done(server);
-      } catch (e) {
-        error = e instanceof Error ? e.message : 'failed to join server';
-      } finally {
-        busy = false;
-      }
+      await join(key);
     }
   }
 
@@ -98,6 +121,17 @@
 
   function focus(input: HTMLInputElement) {
     input.focus();
+  }
+
+  function initials(name: string) {
+    return (
+      name
+        .split(/[\s_-]+/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((p) => p[0].toUpperCase())
+        .join('') || name.slice(0, 2).toUpperCase()
+    );
   }
 </script>
 
@@ -136,11 +170,43 @@
           </button>
           <input type="file" accept="image/*" bind:this={iconInput} hidden onchange={(e) => onIcon((e.currentTarget as HTMLInputElement).files?.[0])} />
         {:else}
-          <input type="text" bind:value={joinKey} placeholder="server id or invite code" spellcheck="false" maxlength="12" use:focus />
+          <div class="pub-wrap">
+            <div class="pub-head">
+              <span class="pub-title">public servers</span>
+              <button type="button" class="pub-refresh" title="Refresh" onclick={refreshPublic}>
+                <Icon name="refresh" size={13} />
+              </button>
+            </div>
+            {#if publicServers.length > 0}
+              <div class="pub-list">
+                {#each publicServers as s (s.id)}
+                  <div class="pub-row">
+                    {#if s.avatar}
+                      <img class="pub-ico" src={s.avatar} alt="" />
+                    {:else}
+                      <span class="pub-glyph">{initials(s.name)}</span>
+                    {/if}
+                    <span class="pub-name" title={s.name}>{s.name}</span>
+                    <span class="pub-count" title="members">{s.member_count}</span>
+                    <button type="button" class="pub-join" disabled={busy} onclick={() => join(s.id)}>join</button>
+                  </div>
+                {/each}
+              </div>
+            {:else}
+              <p class="pub-empty">no public servers yet</p>
+            {/if}
+            <div class="pub-manual">
+              <p class="pub-hint">have an invite code or server id?</p>
+              <input type="text" bind:value={joinKey} placeholder="code or id" spellcheck="false" maxlength="12" use:focus />
+              <button type="submit" class="join-submit" disabled={!joinKey.trim() || busy}>{busy ? '...' : 'join'}</button>
+            </div>
+          </div>
         {/if}
 
         {#if error}<p class="error">{error}</p>{/if}
-        <button type="submit" class="submit" disabled={busy}>{busy ? '...' : tab === 'create' ? 'create' : 'join'}</button>
+        {#if tab === 'create'}
+          <button type="submit" class="submit" disabled={busy}>{busy ? '...' : 'create'}</button>
+        {/if}
       </form>
     </div>
   </div>
@@ -163,6 +229,24 @@
   .preview { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
   .icon-label { font-size: 12px; }
   .error { color: var(--red); font-size: 11px; margin: 0; }
+  .pub-wrap { display: flex; flex-direction: column; gap: 10px; }
+  .pub-head { display: flex; align-items: center; justify-content: space-between; }
+  .pub-title { font-size: 10px; text-transform: uppercase; color: var(--surface2); letter-spacing: 0.1em; }
+  .pub-refresh { all: unset; color: var(--overlay0); cursor: pointer; display: inline-flex; }
+  .pub-refresh:hover { color: var(--text); }
+  .pub-list { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--surface2) transparent; }
+  .pub-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--base); border: 1px solid var(--surface0); border-radius: 5px; }
+  .pub-ico { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+  .pub-glyph { width: 26px; height: 26px; border-radius: 50%; background: var(--surface0); color: var(--mauve); font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .pub-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+  .pub-count { color: var(--surface2); font-size: 11px; flex-shrink: 0; }
+  .pub-join { all: unset; cursor: pointer; background: var(--accent); color: var(--on-accent); font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: 700; flex-shrink: 0; }
+  .pub-join:disabled { background: var(--surface0); color: var(--subtext0); cursor: not-allowed; }
+  .pub-empty { margin: 0; color: var(--overlay0); font-size: 12px; }
+  .pub-manual { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid var(--surface0); padding-top: 10px; }
+  .pub-hint { margin: 0; font-size: 11px; color: var(--overlay0); }
+  .join-submit { all: unset; text-align: center; background: var(--accent); color: var(--on-accent); padding: 8px 0; border-radius: 4px; font-weight: 700; font-size: 12px; cursor: pointer; }
+  .join-submit:disabled { background: var(--surface0); color: var(--subtext0); cursor: not-allowed; }
   .submit { all: unset; text-align: center; background: var(--accent); color: var(--on-accent); padding: 9px 0; border-radius: 4px; font-weight: 700; font-size: 13px; cursor: pointer; }
   .submit:disabled { background: var(--surface0); color: var(--subtext0); cursor: not-allowed; }
 </style>

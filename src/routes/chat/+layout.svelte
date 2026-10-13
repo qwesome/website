@@ -21,7 +21,10 @@
 
   onMount(() => {
     if (!auth.ready) auth.restore();
-    
+
+    // Validate + rotate the stored session token (a fresh token each load).
+    auth.refresh();
+
     // Apply local appearance settings & sync with backend
     appearance.applyToDOM();
     appearance.loadFromServer();

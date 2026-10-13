@@ -1,5 +1,5 @@
 <script lang="ts">
-  type Name = 'reply' | 'edit' | 'trash' | 'check' | 'x' | 'menu' | 'logout' | 'image' | 'gear' | 'plus' | 'home' | 'hash' | 'send' | 'link' | 'user';
+  type Name = 'reply' | 'edit' | 'trash' | 'check' | 'x' | 'menu' | 'logout' | 'image' | 'gear' | 'plus' | 'home' | 'hash' | 'send' | 'link' | 'user' | 'refresh';
   let { name, size = 16, stroke = 2 }: { name: Name; size?: number; stroke?: number } = $props();
 </script>
 
@@ -45,5 +45,7 @@
     <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
   {:else if name === 'user'}
     <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+  {:else if name === 'refresh'}
+    <polyline points="23 4 23 10 17 10" /><polyline points="1 20 1 14 7 14" /><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
   {/if}
 </svg>

@@ -16,6 +16,7 @@
   );
 
   let createOpen = $state(false);
+  let createTab = $state<'create' | 'join'>('create');
 
   const style = $derived.by(() => {
     if (!ui.isMobile) return '';
@@ -29,7 +30,7 @@
 </script>
 
 <aside class="sidebar" {style} class:open={ui.sidebarOpen}>
-  <ServerRail oncreate={() => (createOpen = true)} />
+  <ServerRail oncreate={(tab) => { createTab = tab; createOpen = true; }} />
   {#if activeServer}
     <ServerPanel server={activeServer} />
   {:else}
@@ -37,7 +38,7 @@
   {/if}
 </aside>
 
-<CreateServerModal bind:open={createOpen} />
+<CreateServerModal bind:open={createOpen} initialTab={createTab} />
 
 <style>
   .sidebar { display: flex; height: 100%; flex-shrink: 0; }

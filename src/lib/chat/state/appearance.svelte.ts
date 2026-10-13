@@ -86,12 +86,38 @@ export class AppearanceState {
   }
 
   applyToDOM() {
+    this.applyPreview({
+      mode: this.mode,
+      darkTheme: this.darkTheme,
+      lightTheme: this.lightTheme,
+      accents: this.accents,
+      customThemes: this.customThemes
+    });
+  }
+
+  /** Applies a *draft* appearance to the DOM without touching storage/server.
+   *  Used for live previews in the settings modal before "save changes". */
+  applyPreview(opts: {
+    mode: AppearanceSettings['mode'];
+    darkTheme: string;
+    lightTheme: string;
+    accents: Record<string, string>;
+    customThemes: CustomTheme[];
+  }) {
     if (typeof document === 'undefined') return;
     const root = document.querySelector('.chat-root') as HTMLElement;
     if (!root) return;
 
-    const theme = this.activeTheme;
-    const accentChoice = this.accents[theme.id];
+    let mode: 'light' | 'dark' = 'dark';
+    if (opts.mode === 'system') {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      mode = prefersDark ? 'dark' : 'light';
+    } else {
+      mode = opts.mode;
+    }
+    const themeId = mode === 'dark' ? opts.darkTheme : opts.lightTheme;
+    const theme = getTheme(themeId, opts.customThemes);
+    const accentChoice = opts.accents[theme.id];
     const tokens = resolveThemeTokens(theme, accentChoice);
 
     Object.entries(tokens).forEach(([key, val]) => {

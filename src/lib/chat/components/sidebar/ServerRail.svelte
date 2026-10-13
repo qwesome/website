@@ -4,16 +4,23 @@
   import { servers } from '../../state/servers.svelte';
   import { unread } from '../../state/unread.svelte';
   import { chatFromUrl, channelHref, homeHref } from '../../utils/route';
+  import { clickOutside } from '../../actions/clickOutside';
   import Icon from '../ui/Icon.svelte';
 
-  let { oncreate }: { oncreate: () => void } = $props();
+  let { oncreate }: { oncreate: (tab: 'create' | 'join') => void } = $props();
   const me = $derived(auth.user ?? '');
   const current = $derived(chatFromUrl(page.url, me));
 
+  let menuOpen = $state(false);
+
   const homeActive = $derived(current.type === 'home' || current.type === 'dm' || current.type === 'admin');
-  const homeUnread = $derived(
-    Object.entries(unread.map).some(([ch, v]) => v && (ch.startsWith('dm:') || ch === 'admin-panel'))
+  const homeUnreadCount = $derived(
+    Object.entries(unread.map).reduce(
+      (n, [ch, v]) => n + (v && (ch.startsWith('dm:') || ch === 'admin-panel') ? 1 : 0),
+      0
+    )
   );
+  const badgeLabel = $derived(homeUnreadCount > 99 ? '99+' : String(homeUnreadCount));
 
   function serverUnread(serverId: number) {
     const srv = servers.serverOf(serverId);
@@ -34,12 +41,16 @@
       .map((p) => p[0].toUpperCase())
       .join('') || name.slice(0, 2).toUpperCase();
   }
+function pick(tab: 'create' | 'join') {
+    menuOpen = false;
+    oncreate(tab);
+  }
 </script>
 
 <nav class="rail">
   <a class="rail-btn home" class:active={homeActive} href={homeHref()} title="Direct messages">
     <Icon name="home" size={22} />
-    {#if homeUnread}<span class="unread-pill"></span>{/if}
+    {#if homeUnreadCount > 0}<span class="count-badge">{badgeLabel}</span>{/if}
   </a>
 
   <div class="rail-divider"></div>
@@ -60,14 +71,28 @@
     </a>
   {/each}
 
-  <button type="button" class="rail-btn add" title="Create or join a server" onclick={oncreate}>
+  <button type="button" class="rail-btn add" class:on={menuOpen} title="Create or join a server" onclick={() => (menuOpen = !menuOpen)}>
     <Icon name="plus" size={20} />
   </button>
+
+  {#if menuOpen}
+    <div class="add-menu" role="menu" use:clickOutside={{ onoutside: () => (menuOpen = false) }}>
+      <button type="button" class="menu-item" onclick={() => pick('create')}>
+        <Icon name="plus" size={15} /> create server
+      </button>
+      <button type="button" class="menu-item" onclick={() => pick('join')}>
+        <Icon name="link" size={15} /> join server
+      </button>
+    </div>
+  {/if}
 </nav>
+
+<svelte:window onkeydown={(e) => e.key === 'Escape' && (menuOpen = false)} />
 
 <style>
   .rail {
     width: 68px;
+    position: relative;
     flex-shrink: 0;
     display: flex;
     flex-direction: column;
@@ -114,6 +139,41 @@
     background: var(--surface0);
     border-style: solid;
   }
+  .rail-btn.add.on {
+    background: var(--surface0);
+    border-style: solid;
+    border-radius: 12px;
+    color: var(--text);
+  }
+  .add-menu {
+    position: absolute;
+    left: 60px;
+    bottom: 12px;
+    z-index: 200;
+    min-width: 160px;
+    background: var(--mantle);
+    border: 1px solid var(--surface1);
+    border-radius: 8px;
+    padding: 5px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  }
+  .menu-item {
+    all: unset;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: 5px;
+    color: var(--subtext0);
+    font-size: 13px;
+    cursor: pointer;
+  }
+  .menu-item:hover {
+    background: var(--surface0);
+    color: var(--text);
+  }
   .rail-btn.home {
     background: var(--green);
     color: var(--crust);
@@ -145,6 +205,22 @@
     height: 6px;
     border-radius: 50%;
     background: var(--red);
+  }
+  .count-badge {
+    position: absolute;
+    top: -3px;
+    right: -3px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 9px;
+    background: var(--red);
+    color: var(--crust);
+    font-size: 9px;
+    font-weight: 800;
+    line-height: 16px;
+    text-align: center;
+    box-sizing: border-box;
   }
   .rail-divider {
     width: 28px;

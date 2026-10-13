@@ -10,6 +10,7 @@
   import Icon from '../ui/Icon.svelte';
   import ConfirmButton from '../ui/ConfirmButton.svelte';
   import ChannelEditModal from './ChannelEditModal.svelte';
+  import ServerSettingsModal from './ServerSettingsModal.svelte';
 
   let { server }: { server: Server } = $props();
 
@@ -21,6 +22,7 @@
   let renameTarget = $state<ServerChannel | null>(null);
   let renameOpen = $state(false);
   let inviteOpen = $state(false);
+  let settingsOpen = $state(false);
   let copied = $state(false);
   let copyTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -66,6 +68,9 @@
         </button>
       {/if}
       {#if isOwner}
+        <button type="button" class="icon-btn" title="Server settings" onclick={() => (settingsOpen = true)}>
+          <Icon name="gear" size={16} />
+        </button>
         <button type="button" class="icon-btn" title="Create channel" onclick={() => (createOpen = true)}>
           <Icon name="plus" size={18} />
         </button>
@@ -132,6 +137,7 @@
     onclose={() => (renameTarget = null)}
   />
 {/if}
+<ServerSettingsModal {server} bind:open={settingsOpen} />
 
 <style>
   .panel { width: 240px; flex-shrink: 0; background: var(--mantle); border-right: 1px solid var(--surface0); display: flex; flex-direction: column; height: 100%; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--surface2) transparent; }

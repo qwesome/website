@@ -26,9 +26,9 @@
     if (!auth.user) goto('/chat/login', { replaceState: true });
   });
 
-  // Connect while signed in.
+  // Connect while signed in and the session is validated/refreshed.
   $effect(() => {
-    if (!auth.user) return;
+    if (!auth.user || !auth.validated) return;
     connect();
     conversations.load();
     servers.load();

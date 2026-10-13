@@ -1,8 +1,10 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { requestFriend, respondFriend, removeFriend } from '../../api/friends';
+  import { kickMember } from '../../api/servers';
   import { auth } from '../../state/auth.svelte';
   import { friends } from '../../state/friends.svelte';
+  import { servers } from '../../state/servers.svelte';
   import { ui } from '../../state/ui.svelte';
   import { dmHref } from '../../utils/route';
   import { clickOutside } from '../../actions/clickOutside';
@@ -18,6 +20,17 @@
 
   const left = $derived(target ? Math.min(target.x, Math.max(8, window.innerWidth - 190)) : 0);
   const top = $derived(target ? Math.min(target.y, Math.max(8, window.innerHeight - 200)) : 0);
+
+  // In a server we own, allow kicking the context-menu user.
+  const kickServer = $derived.by(() => {
+    if (!target) return null;
+    const id = Number(ui.activeChannel);
+    if (!Number.isInteger(id) || id <= 0) return null;
+    const cur = servers.channelOf(id);
+    if (!cur || cur.server.owner !== me) return null;
+    if (target.user === me || target.user === cur.server.owner) return null;
+    return cur.server;
+  });
 
   async function run(fn: () => Promise<unknown>) {
     const user = target?.user;

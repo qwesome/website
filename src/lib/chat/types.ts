@@ -64,7 +64,18 @@ export interface Server {
   /** case-insensitive shareable invite code (e.g. "K7FQ2A") */
   code?: string;
   is_default?: number;
+  /** 1 = listed in the public join directory */
+  is_public?: number;
   channels: ServerChannel[];
+}
+
+/** Lightweight server entry shown in the public join directory. */
+export interface PublicServer {
+  id: number;
+  name: string;
+  avatar: string | null;
+  owner: string;
+  member_count: number;
 }
 
 export interface FriendsData {

@@ -6,6 +6,7 @@
   import ChatHeader from '$lib/chat/components/chat/ChatHeader.svelte';
   import MessageList from '$lib/chat/components/chat/MessageList.svelte';
   import MessageInput from '$lib/chat/components/chat/MessageInput.svelte';
+  import MembersList from '$lib/chat/components/chat/MembersList.svelte';
 
   const current = $derived(chatFromUrl(page.url, auth.user ?? ''));
 
@@ -40,12 +41,21 @@
     </div>
   </div>
 {:else}
-  <ChatHeader {title} />
-  <MessageList channel={current.id} />
-  <MessageInput channel={current.id} {placeholder} />
+  <div class="viewport">
+    <div class="main">
+      <ChatHeader {title} />
+      <MessageList channel={current.id} />
+      <MessageInput channel={current.id} {placeholder} />
+    </div>
+    {#if current.type === 'server'}
+      <MembersList serverId={current.serverId} />
+    {/if}
+  </div>
 {/if}
 
 <style>
+  .viewport { flex: 1; display: flex; min-height: 0; min-width: 0; }
+  .main { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
   .home { flex: 1; display: flex; align-items: center; justify-content: center; padding: 24px; overflow-y: auto; }
   .home-card { max-width: 420px; text-align: center; color: var(--overlay0); }
   .home-card h1 { margin: 0 0 10px; color: var(--text); font-size: 20px; }

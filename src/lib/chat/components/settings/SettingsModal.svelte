@@ -34,6 +34,14 @@
 
   function markDirty() {
     isDirty = true;
+    // Live-preview the draft without saving to storage or the server.
+    appearance.applyPreview({
+      mode: draftMode === 'dual' ? 'system' : draftActiveMode,
+      darkTheme: draftDarkTheme,
+      lightTheme: draftLightTheme,
+      accents: draftAccents,
+      customThemes: appearance.customThemes
+    });
   }
 
   function handleSave() {
@@ -54,6 +62,8 @@
   }
 
   function close() {
+    // Discard unsaved edits: put the committed theme back on screen.
+    if (isDirty) appearance.applyToDOM();
     open = false;
   }
 
@@ -148,7 +158,7 @@
               </label>
             </section>
 
-            <!-- Accent Selector -->
+            <!-- Accent Selector (the mode the accent applies to) -->
             {#if activeSelectedTheme}
               <section class="setting-group">
                 <h3>accent color ({activeSelectedTheme.name.toLowerCase()})</h3>
@@ -170,57 +180,62 @@
               </section>
             {/if}
 
-            <!-- Dark Themes Category -->
-            <section class="setting-group">
-              <h3>dark themes</h3>
-              <div class="theme-grid">
-                {#each darkThemes as theme}
-                  <button
-                    class="theme-card"
-                    class:active={draftDarkTheme === theme.id}
-                    onclick={() => {
-                      draftDarkTheme = theme.id;
-                      draftActiveMode = 'dark';
-                      markDirty();
-                    }}
-                  >
-                    <div class="swatch-row">
-                      <span class="swatch" style="background: {theme.tokens.crust}"></span>
-                      <span class="swatch" style="background: {theme.tokens.base}"></span>
-                      <span class="swatch" style="background: {theme.tokens.surface0}"></span>
-                      <span class="swatch" style="background: {theme.tokens.text}"></span>
-                    </div>
-                    <span class="theme-name">{theme.name.toLowerCase()}</span>
-                  </button>
-                {/each}
-              </div>
-            </section>
+            <!-- Dark Themes: unlocked only when dual mode (or active) so a single
+                 theme stays single when the "sync with system" option is off. -->
+            {#if draftMode === 'dual' || draftActiveMode === 'dark'}
+              <section class="setting-group">
+                <h3>dark themes</h3>
+                <div class="theme-grid">
+                  {#each darkThemes as theme}
+                    <button
+                      class="theme-card"
+                      class:active={draftDarkTheme === theme.id}
+                      onclick={() => {
+                        draftDarkTheme = theme.id;
+                        draftActiveMode = 'dark';
+                        markDirty();
+                      }}
+                    >
+                      <div class="swatch-row">
+                        <span class="swatch" style="background: {theme.tokens.crust}"></span>
+                        <span class="swatch" style="background: {theme.tokens.base}"></span>
+                        <span class="swatch" style="background: {theme.tokens.surface0}"></span>
+                        <span class="swatch" style="background: {theme.tokens.text}"></span>
+                      </div>
+                      <span class="theme-name">{theme.name.toLowerCase()}</span>
+                    </button>
+                  {/each}
+                </div>
+              </section>
+            {/if}
 
-            <!-- Light Themes Category -->
-            <section class="setting-group">
-              <h3>light themes</h3>
-              <div class="theme-grid">
-                {#each lightThemes as theme}
-                  <button
-                    class="theme-card"
-                    class:active={draftLightTheme === theme.id}
-                    onclick={() => {
-                      draftLightTheme = theme.id;
-                      draftActiveMode = 'light';
-                      markDirty();
-                    }}
-                  >
-                    <div class="swatch-row">
-                      <span class="swatch" style="background: {theme.tokens.crust}"></span>
-                      <span class="swatch" style="background: {theme.tokens.base}"></span>
-                      <span class="swatch" style="background: {theme.tokens.surface0}"></span>
-                      <span class="swatch" style="background: {theme.tokens.text}"></span>
-                    </div>
-                    <span class="theme-name">{theme.name.toLowerCase()}</span>
-                  </button>
-                {/each}
-              </div>
-            </section>
+            <!-- Light Themes -->
+            {#if draftMode === 'dual' || draftActiveMode === 'light'}
+              <section class="setting-group">
+                <h3>light themes</h3>
+                <div class="theme-grid">
+                  {#each lightThemes as theme}
+                    <button
+                      class="theme-card"
+                      class:active={draftLightTheme === theme.id}
+                      onclick={() => {
+                        draftLightTheme = theme.id;
+                        draftActiveMode = 'light';
+                        markDirty();
+                      }}
+                    >
+                      <div class="swatch-row">
+                        <span class="swatch" style="background: {theme.tokens.crust}"></span>
+                        <span class="swatch" style="background: {theme.tokens.base}"></span>
+                        <span class="swatch" style="background: {theme.tokens.surface0}"></span>
+                        <span class="swatch" style="background: {theme.tokens.text}"></span>
+                      </div>
+                      <span class="theme-name">{theme.name.toLowerCase()}</span>
+                    </button>
+                  {/each}
+                </div>
+              </section>
+            {/if}
 
             <!-- Custom Theme Import -->
             <section class="setting-group">
