@@ -61,8 +61,16 @@ export interface Server {
   name: string;
   avatar: string | null;
   owner: string;
+  /** case-insensitive shareable invite code (e.g. "K7FQ2A") */
+  code?: string;
   is_default?: number;
   channels: ServerChannel[];
+}
+
+export interface FriendsData {
+  friends: string[];
+  incoming: string[];
+  outgoing: string[];
 }
 
 export type ChatTarget =

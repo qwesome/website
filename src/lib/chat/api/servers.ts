@@ -9,8 +9,8 @@ export const createServer = async (name: string, avatar: string | null) => {
   return res.server;
 };
 
-export const joinServer = async (serverId: number) => {
-  const res = await api<{ server: Server }>(`/api/servers/${serverId}/join`, { method: 'POST' });
+export const joinServer = async (key: string | number) => {
+  const res = await api<{ server: Server }>(`/api/servers/${encodeURIComponent(key)}/join`, { method: 'POST' });
   return res.server;
 };
 

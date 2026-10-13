@@ -37,14 +37,27 @@
     if (e.key === 'Enter') saveEdit();
     if (e.key === 'Escape') editing = false;
   }
+
+  function onContextMenu(e: MouseEvent) {
+    if (m.author === 'SYSTEM') return;
+    if ((window.getSelection()?.toString() ?? '').length > 0) return;
+    e.preventDefault();
+    ui.openContextMenu(e.clientX, e.clientY, m.author);
+  }
+
+  function showProfile() {
+    if (m.author !== 'SYSTEM') ui.showProfile(m.author);
+  }
 </script>
 
-<div class="msg" class:self={mine} class:sending={m.sending} data-author={m.author}>
-  <Avatar name={m.author} />
+<div class="msg" role="group" class:self={mine} class:sending={m.sending} data-author={m.author} oncontextmenu={onContextMenu}>
+  <button type="button" class="pfp-btn" title="View profile" onclick={showProfile}>
+    <Avatar name={m.author} />
+  </button>
 
   <div class="body">
     <div class="meta">
-      <span class="author" data-author={m.author}>{m.author}</span>
+      <button type="button" class="author" title="View profile" data-author={m.author} onclick={showProfile}>{m.author}</button>
       <span class="time">{formatTime(m.ts)}</span>
       {#if !m.sending}
         <MessageActions
@@ -80,13 +93,16 @@
 </div>
 
 <style>
-  .msg { padding: 8px 24px; display: flex; gap: 14px; }
+  .msg { padding: 8px 24px; display: flex; gap: 14px; transition: background 0.15s ease; }
   .msg:hover { background: rgba(255, 255, 255, 0.02); }
+  .pfp-btn { all: unset; flex-shrink: 0; align-self: flex-start; cursor: pointer; line-height: 0; border-radius: 6px; opacity: 1; transition: opacity 0.2s; }
+  .pfp-btn:hover { opacity: 0.85; }
   .msg.sending { opacity: 0.5; filter: grayscale(0.3); transition: opacity 0.3s ease, filter 0.3s ease; }
   .msg.sending .msg-bubble { background: var(--surface0); color: var(--overlay0); border-color: var(--surface1); }
   .body { flex: 1; min-width: 0; }
   .meta { margin-bottom: 4px; display: flex; align-items: baseline; gap: 8px; }
-  .author { font-size: 13px; font-weight: bold; color: var(--blue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: text; }
+  .author { all: unset; display: inline; font-size: 13px; font-weight: bold; color: var(--blue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; user-select: text; cursor: pointer; }
+  .author:hover { text-decoration: underline; }
   .author[data-author='orson'] { color: var(--teal); }
   .time { font-size: 11px; color: var(--surface2); user-select: text; }
 

@@ -12,7 +12,7 @@
   let name = $state('');
   let iconInput = $state<HTMLInputElement>();
   let iconData = $state<string | null>(null);
-  let joinId = $state('');
+  let joinKey = $state('');
   let error = $state('');
   let busy = $state(false);
 
@@ -21,7 +21,7 @@
       tab = 'create';
       name = '';
       iconData = null;
-      joinId = '';
+      joinKey = '';
       error = '';
     }
   });
@@ -58,15 +58,15 @@
         busy = false;
       }
     } else {
-      const id = Number(joinId.trim());
-      if (!Number.isInteger(id) || id <= 0) {
-        error = 'enter the server id';
+      const key = joinKey.trim();
+      if (!key) {
+        error = 'enter the invite code or server id';
         return;
       }
       busy = true;
       error = '';
       try {
-        const server = await joinServer(id);
+        const server = await joinServer(key);
         done(server);
       } catch (e) {
         error = e instanceof Error ? e.message : 'failed to join server';
@@ -136,7 +136,7 @@
           </button>
           <input type="file" accept="image/*" bind:this={iconInput} hidden onchange={(e) => onIcon((e.currentTarget as HTMLInputElement).files?.[0])} />
         {:else}
-          <input type="text" inputmode="numeric" bind:value={joinId} placeholder="server id" spellcheck="false" maxlength="12" use:focus />
+          <input type="text" bind:value={joinKey} placeholder="server id or invite code" spellcheck="false" maxlength="12" use:focus />
         {/if}
 
         {#if error}<p class="error">{error}</p>{/if}

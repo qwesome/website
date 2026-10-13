@@ -6,11 +6,14 @@
   import { auth } from '$lib/chat/state/auth.svelte';
   import { conversations } from '$lib/chat/state/conversations.svelte';
   import { servers } from '$lib/chat/state/servers.svelte';
+  import { friends } from '$lib/chat/state/friends.svelte';
   import { unread } from '$lib/chat/state/unread.svelte';
   import { ui } from '$lib/chat/state/ui.svelte';
   import { channelHref, chatFromUrl, homeHref } from '$lib/chat/utils/route';
   import Sidebar from '$lib/chat/components/sidebar/Sidebar.svelte';
   import Lightbox from '$lib/chat/components/ui/Lightbox.svelte';
+  import UserContextMenu from '$lib/chat/components/ui/UserContextMenu.svelte';
+  import ProfileModal from '$lib/chat/components/ui/ProfileModal.svelte';
   import ChatSkeleton from '$lib/chat/components/ui/ChatSkeleton.svelte';
 
   let { children } = $props();
@@ -29,6 +32,7 @@
     connect();
     conversations.load();
     servers.load();
+    friends.load();
     return () => disconnect();
   });
 
@@ -97,6 +101,8 @@
     <div class="chat">{@render children()}</div>
   </div>
   <Lightbox />
+  <UserContextMenu />
+  <ProfileModal />
 {/if}
 
 <!-- Covers the redirect, and the first conversation/servers fetch after sign-in -->

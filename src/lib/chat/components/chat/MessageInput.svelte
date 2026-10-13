@@ -3,6 +3,7 @@
   import { MAX_MESSAGE_LENGTH } from '../../config';
   import { sendChatMessage } from '../../send';
   import { ui } from '../../state/ui.svelte';
+  import { clickOutside } from '../../actions/clickOutside';
   import Icon from '../ui/Icon.svelte';
   import GifPicker from './GifPicker.svelte';
   import ReplyPreview from './ReplyPreview.svelte';
@@ -13,6 +14,7 @@
   let textarea = $state<HTMLTextAreaElement>();
   let fileInput = $state<HTMLInputElement>();
   let showGifs = $state(false);
+  let attachOpen = $state(false);
 
   const shownPlaceholder = $derived.by(() => {
     const max = ui.windowWidth < 360 ? 14 : ui.windowWidth < 430 ? 18 : 24;
@@ -58,6 +60,11 @@
     reader.readAsDataURL(file);
   }
 
+  function pickImage() {
+    attachOpen = false;
+    fileInput?.click();
+  }
+
   function onFileChange(e: Event) {
     const input = e.currentTarget as HTMLInputElement;
     sendImage(input.files?.[0]);
@@ -79,6 +86,7 @@
     if (e.key === 'Escape') {
       if (ui.replyingTo) ui.replyingTo = null;
       showGifs = false;
+      attachOpen = false;
       return;
     }
     const t = e.target as HTMLElement;
@@ -86,7 +94,7 @@
     if (e.key.length === 1) textarea?.focus();
   }
 
-  // Keep the mobile keyboard open when tapping the toolbar buttons.
+  // Keep the mobile keyboard open when tapping buttons.
   function keepFocus(e: PointerEvent) {
     if (document.activeElement === textarea) e.preventDefault();
   }
@@ -108,6 +116,30 @@
   {/if}
 
   <div class="input-wrap">
+    <span class="left">
+      <button type="button" class="plus-btn" class:on={attachOpen} title="Attach" onpointerdown={keepFocus} onclick={() => (attachOpen = !attachOpen)}>
+        <Icon name="plus" size={18} stroke={2.5} />
+      </button>
+      {#if attachOpen}
+        <div class="attach-menu" use:clickOutside={{ onoutside: () => (attachOpen = false), ignore: '.plus-btn' }}>
+          <button type="button" class="attach-item" onpointerdown={keepFocus} onclick={pickImage}>
+            <Icon name="image" size={16} /> upload image
+          </button>
+          <button
+            type="button"
+            class="attach-item"
+            onpointerdown={keepFocus}
+            onclick={() => {
+              attachOpen = false;
+              showGifs = true;
+            }}
+          >
+            <Icon name="send" size={16} /> send a gif
+          </button>
+        </div>
+      {/if}
+    </span>
+
     <textarea
       bind:this={textarea}
       bind:value
@@ -119,22 +151,29 @@
       {onpaste}
     ></textarea>
     <input type="file" accept="image/*" bind:this={fileInput} onchange={onFileChange} hidden />
-    <button type="button" class="upload-btn gif-toggle-btn gif-label" title="send a gif" onpointerdown={keepFocus} onclick={() => (showGifs = !showGifs)}>GIF</button>
-    <button type="button" class="upload-btn last" title="upload image" onpointerdown={keepFocus} onclick={() => fileInput?.click()}>
-      <Icon name="image" size={20} />
+
+    <button type="button" class="send-btn" title="Send message" disabled={!value.trim()} onclick={submit}>
+      <Icon name="send" size={17} />
     </button>
   </div>
 </div>
 
 <style>
   .input-bar { display: flex; flex-direction: column; padding: 15px 24px calc(20px + env(safe-area-inset-bottom, 12px)); position: relative; }
-  .input-wrap { display: flex; background: var(--mantle); border: 1px solid var(--surface0); border-radius: 8px; align-items: center; transition: border-color 0.2s; }
+  .input-wrap { display: flex; background: var(--mantle); border: 1px solid var(--surface0); border-radius: 8px; align-items: center; transition: border-color 0.2s, box-shadow 0.2s; }
+  .input-bar:focus-within .input-wrap { border-color: rgba(179, 135, 252, 0.55); box-shadow: 0 0 0 2px rgba(179, 135, 252, 0.12); }
   .has-reply .input-wrap { border-radius: 0 0 8px 8px; }
-  .input-bar:focus-within .input-wrap, .input-bar:focus-within :global(.reply-preview) { border-color: var(--mauve); }
-  textarea { all: unset; flex: 1; min-width: 0; color: var(--text); font-size: 15px; padding: 12px 18px; resize: none; overflow-y: auto; overflow-wrap: break-word; word-break: break-word; white-space: pre-wrap; max-height: 150px; box-sizing: border-box; line-height: 1.5; user-select: text; cursor: text; }
+  .input-bar:focus-within :global(.reply-preview) { border-color: rgba(179, 135, 252, 0.55); }
+  .left { position: relative; display: flex; flex-shrink: 0; padding-left: 8px; }
+  .plus-btn { all: unset; width: 36px; height: 36px; display: inline-flex; align-items: center; justify-content: center; color: var(--overlay1); cursor: pointer; border-radius: 6px; transition: color 0.2s, background 0.2s; flex-shrink: 0; }
+  .plus-btn:hover { color: var(--mauve); background: var(--surface0); }
+  .plus-btn.on { color: var(--mauve); background: var(--surface0); }
+  .attach-menu { position: absolute; left: 0; bottom: calc(100% + 8px); width: 160px; background: var(--mantle); border: 1px solid var(--surface1); border-radius: 8px; padding: 5px; display: flex; flex-direction: column; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); z-index: 100; }
+  .attach-item { all: unset; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 5px; color: var(--subtext0); font-size: 13px; cursor: pointer; }
+  .attach-item:hover { background: var(--surface0); color: var(--text); }
+  textarea { all: unset; flex: 1; min-width: 0; color: var(--text); font-size: 15px; padding: 12px 12px 12px 10px; resize: none; overflow-y: auto; overflow-wrap: break-word; word-break: break-word; white-space: pre-wrap; max-height: 150px; box-sizing: border-box; line-height: 1.5; user-select: text; cursor: text; }
   textarea::placeholder { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .upload-btn { all: unset; border: 2px solid var(--surface0); color: var(--overlay0); padding: 0 16px; cursor: pointer; height: 50px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; align-self: stretch; box-sizing: border-box; transition: color 0.25s ease, border-color 0.25s ease; }
-  .upload-btn.last { border-radius: 0 8px 8px 0; }
-  .upload-btn:hover { color: var(--mauve); }
-  .gif-label { font-weight: 800; font-size: 13px; }
+  .send-btn { all: unset; width: 36px; height: 36px; margin-right: 8px; display: inline-flex; align-items: center; justify-content: center; background: var(--mauve); color: var(--crust); border-radius: 6px; cursor: pointer; transition: filter 0.2s, opacity 0.2s; flex-shrink: 0; }
+  .send-btn:hover { filter: brightness(1.08); }
+  .send-btn:disabled { opacity: 0.35; cursor: default; filter: none; }
 </style>

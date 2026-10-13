@@ -5,15 +5,15 @@ import { messages } from './state/messages.svelte';
 import { presence } from './state/presence.svelte';
 import { avatars } from './state/avatars.svelte';
 import { servers } from './state/servers.svelte';
+import { friends } from './state/friends.svelte';
 import { handleIncoming } from './notify';
 import type { Message, MessageId, OutgoingMessage, ServerChannel, Status } from './types';
 
 let socket: Socket | null = null;
 
-type ChannelEvent =
-  | { type: 'created'; serverId: number; channel: ServerChannel }
-  | { type: 'renamed'; serverId: number; channel: ServerChannel }
-  | { type: 'deleted'; serverId: number; channelId: number };
+type ChannelCreatedPayload = { serverId: number; channel: ServerChannel };
+type ChannelRenamedPayload = { serverId: number; channel: ServerChannel };
+type ChannelDeletedPayload = { serverId: number; channelId: number };
 
 export function connect() {
   if (socket) return;
@@ -39,16 +39,17 @@ export function connect() {
   socket.on('avatar_update', ({ username, avatar }: { username: string; avatar: string | null }) =>
     avatars.set(username, avatar)
   );
-  socket.on('channel_created', ({ serverId, channel }: ChannelEvent) =>
+  socket.on('channel_created', ({ serverId, channel }: ChannelCreatedPayload) =>
     servers.applyChannelCreated(serverId, channel)
   );
-  socket.on('channel_renamed', ({ serverId, channel }: ChannelEvent) =>
+  socket.on('channel_renamed', ({ serverId, channel }: ChannelRenamedPayload) =>
     servers.applyChannelRenamed(serverId, channel)
   );
-  socket.on('channel_deleted', ({ serverId, channelId }: ChannelEvent) => {
+  socket.on('channel_deleted', ({ serverId, channelId }: ChannelDeletedPayload) => {
     servers.applyChannelDeleted(serverId, channelId);
     messages.clearChannel(String(channelId));
   });
+  socket.on('friend_update', () => friends.load());
 }
 
 export function disconnect() {

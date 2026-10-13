@@ -1,5 +1,5 @@
 <script lang="ts">
-  type Name = 'reply' | 'edit' | 'trash' | 'check' | 'x' | 'menu' | 'logout' | 'image' | 'gear' | 'plus' | 'home' | 'hash';
+  type Name = 'reply' | 'edit' | 'trash' | 'check' | 'x' | 'menu' | 'logout' | 'image' | 'gear' | 'plus' | 'home' | 'hash' | 'send' | 'link' | 'user';
   let { name, size = 16, stroke = 2 }: { name: Name; size?: number; stroke?: number } = $props();
 </script>
 
@@ -39,5 +39,11 @@
     <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" /><polyline points="9 22 9 12 15 12 15 22" />
   {:else if name === 'hash'}
     <line x1="4" x2="20" y1="9" y2="9" /><line x1="4" x2="20" y1="15" y2="15" /><line x1="10" x2="8" y1="3" y2="21" /><line x1="16" x2="14" y1="3" y2="21" />
+  {:else if name === 'send'}
+    <path d="m22 2-7 20-4-9-9-4Z" /><path d="M22 2 11 13" />
+  {:else if name === 'link'}
+    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+  {:else if name === 'user'}
+    <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
   {/if}
 </svg>
