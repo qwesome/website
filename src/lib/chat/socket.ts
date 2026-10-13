@@ -4,17 +4,26 @@ import { auth } from './state/auth.svelte';
 import { messages } from './state/messages.svelte';
 import { presence } from './state/presence.svelte';
 import { avatars } from './state/avatars.svelte';
+import { servers } from './state/servers.svelte';
 import { handleIncoming } from './notify';
-import type { Message, MessageId, OutgoingMessage, Status } from './types';
+import type { Message, MessageId, OutgoingMessage, ServerChannel, Status } from './types';
 
 let socket: Socket | null = null;
+
+type ChannelEvent =
+  | { type: 'created'; serverId: number; channel: ServerChannel }
+  | { type: 'renamed'; serverId: number; channel: ServerChannel }
+  | { type: 'deleted'; serverId: number; channelId: number };
 
 export function connect() {
   if (socket) return;
   socket = io(SERVER_URL, { auth: { token: auth.token } });
 
   // Re-announce on every (re)connect so the server re-adds us to our DM room.
-  socket.on('connect', () => socket?.emit('user_joined', auth.user));
+  socket.on('connect', () => {
+    socket?.emit('user_joined', auth.user);
+    socket?.emit('refresh_servers');
+  });
 
   socket.on('chat_message', (msg: Message) => {
     messages.receive(msg);
@@ -30,11 +39,26 @@ export function connect() {
   socket.on('avatar_update', ({ username, avatar }: { username: string; avatar: string | null }) =>
     avatars.set(username, avatar)
   );
+  socket.on('channel_created', ({ serverId, channel }: ChannelEvent) =>
+    servers.applyChannelCreated(serverId, channel)
+  );
+  socket.on('channel_renamed', ({ serverId, channel }: ChannelEvent) =>
+    servers.applyChannelRenamed(serverId, channel)
+  );
+  socket.on('channel_deleted', ({ serverId, channelId }: ChannelEvent) => {
+    servers.applyChannelDeleted(serverId, channelId);
+    messages.clearChannel(String(channelId));
+  });
 }
 
 export function disconnect() {
   socket?.disconnect();
   socket = null;
+}
+
+/** Asks the server to re-add this socket to any server rooms it just joined. */
+export function refreshServers() {
+  socket?.emit('refresh_servers');
 }
 
 // The server derives `author` and `isAdmin` from the socket's session token,

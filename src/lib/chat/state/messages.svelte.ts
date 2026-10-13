@@ -69,6 +69,12 @@ class MessageStore {
     }
   }
 
+  /** Drops the cached messages + pagination for a channel (e.g. after it is deleted). */
+  clearChannel(channel: string) {
+    delete this.byChannel[channel];
+    delete this.meta[channel];
+  }
+
   /** Loads the next page of older messages. Returns true if anything was prepended. */
   async loadMore(channel: string): Promise<boolean> {
     if (channel === 'admin-panel') {

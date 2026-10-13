@@ -47,4 +47,6 @@ export interface AppearanceSettings {
   lightTheme: string;
   accents: Record<string, string>; // themeId -> accentId or hex
   customThemes: CustomTheme[];
+  /** Chat setting: whether the default global server is visible. */
+  showGlobalServer?: boolean;
 }

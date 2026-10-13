@@ -10,6 +10,8 @@ export class AppearanceState {
   lightTheme = $state<string>('catppuccin-latte');
   accents = $state<Record<string, string>>({});
   customThemes = $state<CustomTheme[]>([]);
+  /** Whether the default "global" server is shown in the sidebar. */
+  showGlobalServer = $state(true);
 
   activeTheme = $derived(this.resolveActiveTheme());
 
@@ -28,6 +30,7 @@ export class AppearanceState {
         if (parsed.lightTheme) this.lightTheme = parsed.lightTheme;
         if (parsed.accents) this.accents = parsed.accents;
         if (parsed.customThemes) this.customThemes = parsed.customThemes;
+        if (parsed.showGlobalServer !== undefined) this.showGlobalServer = parsed.showGlobalServer;
       }
     } catch (e) {
       console.warn('Failed to load appearance settings from localStorage', e);
@@ -41,7 +44,8 @@ export class AppearanceState {
       darkTheme: this.darkTheme,
       lightTheme: this.lightTheme,
       accents: $state.snapshot(this.accents),
-      customThemes: $state.snapshot(this.customThemes)
+      customThemes: $state.snapshot(this.customThemes),
+      showGlobalServer: this.showGlobalServer
     };
 
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
@@ -60,6 +64,7 @@ export class AppearanceState {
         if (res.settings.lightTheme) this.lightTheme = res.settings.lightTheme;
         if (res.settings.accents) this.accents = res.settings.accents;
         if (res.settings.customThemes) this.customThemes = res.settings.customThemes;
+        if (res.settings.showGlobalServer !== undefined) this.showGlobalServer = res.settings.showGlobalServer;
         this.save();
       }
     } catch (e) {

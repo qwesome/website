@@ -51,6 +51,22 @@ export interface Gif {
   };
 }
 
+export interface ServerChannel {
+  id: number;
+  name: string;
+}
+
+export interface Server {
+  id: number;
+  name: string;
+  avatar: string | null;
+  owner: string;
+  is_default?: number;
+  channels: ServerChannel[];
+}
+
 export type ChatTarget =
-  | { type: 'channel'; id: string }
-  | { type: 'dm'; id: string; name: string };
+  | { type: 'server'; id: string; serverId: number; channelId: number }
+  | { type: 'dm'; id: string; name: string }
+  | { type: 'admin'; id: string }
+  | { type: 'home'; id: string };

@@ -102,6 +102,13 @@
           >
             appearance
           </button>
+          <button
+            class="tab-btn"
+            class:active={activeTab === 'servers'}
+            onclick={() => (activeTab = 'servers')}
+          >
+            servers
+          </button>
         </nav>
 
         <main class="settings-content">
@@ -230,6 +237,23 @@
               {#if importError}
                 <p class="error-msg">{importError}</p>
               {/if}
+            </section>
+          {:else if activeTab === 'servers'}
+            <section class="setting-group">
+              <div class="setting-row">
+                <span class="setting-label">show the default global server</span>
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={appearance.showGlobalServer}
+                    onchange={(e) => {
+                      appearance.showGlobalServer = e.currentTarget.checked;
+                      appearance.save();
+                    }}
+                  />
+                  <span>everyone is a member of this server</span>
+                </label>
+              </div>
             </section>
           {/if}
         </main>

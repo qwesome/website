@@ -5,9 +5,10 @@
   import { resetNotified } from '$lib/chat/notify';
   import { auth } from '$lib/chat/state/auth.svelte';
   import { conversations } from '$lib/chat/state/conversations.svelte';
+  import { servers } from '$lib/chat/state/servers.svelte';
   import { unread } from '$lib/chat/state/unread.svelte';
   import { ui } from '$lib/chat/state/ui.svelte';
-  import { chatFromUrl } from '$lib/chat/utils/route';
+  import { channelHref, chatFromUrl, homeHref } from '$lib/chat/utils/route';
   import Sidebar from '$lib/chat/components/sidebar/Sidebar.svelte';
   import Lightbox from '$lib/chat/components/ui/Lightbox.svelte';
   import ChatSkeleton from '$lib/chat/components/ui/ChatSkeleton.svelte';
@@ -27,13 +28,48 @@
     if (!auth.user) return;
     connect();
     conversations.load();
+    servers.load();
     return () => disconnect();
+  });
+
+  // Fresh visits to /chat land on the default channel; unknown or legacy
+  // targets (e.g. the old ?c=global, or a channel the user can't see) are
+  // redirected to a safe default.
+  $effect(() => {
+    if (!auth.user || !servers.loaded) return;
+    const url = page.url;
+
+    const hasTarget =
+      url.searchParams.has('dm') || url.searchParams.has('s') || url.searchParams.has('c');
+    if (!hasTarget && !url.searchParams.has('home')) {
+      const def = servers.defaultChannel();
+      goto(def ? channelHref(def.server.id, def.channel.id) : homeHref(), { replaceState: true });
+      return;
+    }
+
+    const c = url.searchParams.get('c');
+    if (c && c !== 'admin-panel') {
+      const def = servers.defaultChannel();
+      goto(def ? channelHref(def.server.id, def.channel.id) : homeHref(), { replaceState: true });
+      return;
+    }
+
+    const cur = chatFromUrl(url, auth.user);
+    if (cur.type === 'server') {
+      const srv = servers.serverOf(cur.serverId);
+      const canSee = !!srv && servers.visible.some((s) => s.id === srv.id);
+      const chOk = !!srv?.channels.some((ch) => String(ch.id) === cur.id);
+      if (!canSee || !chOk) {
+        const def = servers.defaultChannel();
+        goto(def ? channelHref(def.server.id, def.channel.id) : homeHref(), { replaceState: true });
+      }
+    }
   });
 
   // Track which channel is on screen; viewing it clears its unread dot.
   $effect(() => {
-    ui.activeChannel = current?.id ?? null;
-    if (current && ui.focused) unread.set(current.id, false);
+    ui.activeChannel = current?.id || null;
+    if (current?.id && ui.focused) unread.set(current.id, false);
   });
 
   $effect(() => () => clearTimeout(idleTimer));
@@ -63,8 +99,8 @@
   <Lightbox />
 {/if}
 
-<!-- Covers the redirect, and the first conversation fetch after sign-in -->
-{#if !auth.user || !conversations.loaded}
+<!-- Covers the redirect, and the first conversation/servers fetch after sign-in -->
+{#if !auth.user || !conversations.loaded || !servers.loaded}
   <ChatSkeleton />
 {/if}
 

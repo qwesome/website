@@ -4,10 +4,11 @@
   import { presence } from '../../state/presence.svelte';
   import { unread } from '../../state/unread.svelte';
   import { conversations } from '../../state/conversations.svelte';
+  import { servers } from '../../state/servers.svelte';
   import { ui } from '../../state/ui.svelte';
   import { hideConversation } from '../../api/conversations';
   import { dmId } from '../../utils/dm';
-  import { channelHref, dmHref } from '../../utils/route';
+  import { channelHref, dmHref, homeHref } from '../../utils/route';
   import ConfirmButton from '../ui/ConfirmButton.svelte';
   import Icon from '../ui/Icon.svelte';
 
@@ -20,7 +21,10 @@
     try {
       await hideConversation(id);
       await conversations.load();
-      if (active) goto(channelHref('global'));
+      if (active) {
+        const def = servers.defaultChannel();
+        goto(def ? channelHref(def.server.id, def.channel.id) : homeHref());
+      }
     } catch (e) {
       console.error(e);
     }
