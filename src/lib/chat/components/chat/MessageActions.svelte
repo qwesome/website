@@ -33,7 +33,7 @@
   .actions { display: inline-flex; align-items: center; gap: 10px; margin-left: 10px; opacity: 0; transition: opacity 0.2s; }
   :global(.msg:hover) .actions, .actions:focus-within { opacity: 1; }
   .act { all: unset; display: inline-flex; cursor: pointer; color: var(--text); transition: color 0.2s; }
-  .act:hover { color: var(--mauve); }
+  .act:hover { color: var(--accent); }
   @media (max-width: 768px) {
     .actions { opacity: 1; }
   }

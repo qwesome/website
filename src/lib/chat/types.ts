@@ -63,7 +63,6 @@ export interface Server {
   owner: string;
   /** case-insensitive shareable invite code (e.g. "K7FQ2A") */
   code?: string;
-  is_default?: number;
   /** 1 = listed in the public join directory */
   is_public?: number;
   channels: ServerChannel[];
@@ -84,8 +83,27 @@ export interface FriendsData {
   outgoing: string[];
 }
 
+export interface ProfileStatus {
+  emoji: string;
+  text: string;
+  expires: number | null;
+}
+
+export interface Profile {
+  username: string;
+  display_name: string;
+  avatar: string | null;
+  banner: string | null;
+  bio: string;
+  pronouns: string;
+  profile_color: string | null;
+  is_admin: boolean;
+  status: ProfileStatus | null;
+}
+
 export type ChatTarget =
   | { type: 'server'; id: string; serverId: number; channelId: number }
   | { type: 'dm'; id: string; name: string }
   | { type: 'admin'; id: string }
+  | { type: 'friends'; id: string }
   | { type: 'home'; id: string };

@@ -2,6 +2,7 @@
   import { goto } from '$app/navigation';
   import { createServer, fetchPublicServers, joinServer } from '../../api/servers';
   import { servers } from '../../state/servers.svelte';
+  import { ui } from '../../state/ui.svelte';
   import { refreshServers } from '../../socket';
   import { channelHref, homeHref } from '../../utils/route';
   import type { PublicServer } from '../../types';
@@ -14,7 +15,6 @@
 
   let tab = $state<'create' | 'join'>('create');
   let name = $state('');
-  let iconInput = $state<HTMLInputElement>();
   let iconData = $state<string | null>(null);
   let joinKey = $state('');
   let error = $state('');
@@ -45,17 +45,17 @@
     loadPublic();
   }
 
-  async function onIcon(file: File | undefined | null) {
-    if (!file) return;
-    if (!file.type.startsWith('image/')) return;
-    if (file.size > 1_000_000) {
-      error = 'icon too large (max 1MB)';
-      return;
-    }
-    error = '';
-    const reader = new FileReader();
-    reader.onload = () => (iconData = String(reader.result));
-    reader.readAsDataURL(file);
+  function pickIcon() {
+    ui.pickImage({
+      title: 'server icon',
+      name: name.trim() || 'server',
+      value: iconData,
+      shape: 'circle',
+      maxDim: 512,
+      onpick: (value) => {
+        iconData = value;
+      }
+    });
   }
 
   async function join(key: string | number) {
@@ -159,7 +159,7 @@
       >
         {#if tab === 'create'}
           <input type="text" bind:value={name} placeholder="server name" spellcheck="false" maxlength="40" use:focus />
-          <button type="button" class="icon-row" onclick={() => iconInput?.click()}>
+          <button type="button" class="icon-row" onclick={pickIcon}>
             {#if iconData}
               <img class="preview" src={iconData} alt="server icon" />
               <span class="icon-label">replace icon</span>
@@ -168,7 +168,6 @@
               <span class="icon-label">add an icon (optional)</span>
             {/if}
           </button>
-          <input type="file" accept="image/*" bind:this={iconInput} hidden onchange={(e) => onIcon((e.currentTarget as HTMLInputElement).files?.[0])} />
         {:else}
           <div class="pub-wrap">
             <div class="pub-head">
@@ -237,7 +236,7 @@
   .pub-list { display: flex; flex-direction: column; gap: 4px; max-height: 180px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--surface2) transparent; }
   .pub-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--base); border: 1px solid var(--surface0); border-radius: 5px; }
   .pub-ico { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-  .pub-glyph { width: 26px; height: 26px; border-radius: 50%; background: var(--surface0); color: var(--mauve); font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .pub-glyph { width: 26px; height: 26px; border-radius: 50%; background: var(--surface0); color: var(--accent); font-size: 10px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .pub-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
   .pub-count { color: var(--surface2); font-size: 11px; flex-shrink: 0; }
   .pub-join { all: unset; cursor: pointer; background: var(--accent); color: var(--on-accent); font-size: 11px; padding: 4px 10px; border-radius: 4px; font-weight: 700; flex-shrink: 0; }

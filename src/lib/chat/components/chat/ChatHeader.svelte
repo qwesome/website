@@ -22,10 +22,10 @@
 </header>
 
 <style>
-  .chat-header { display: flex; align-items: center; padding: 16px 24px; border-bottom: 1px solid var(--surface0); color: var(--text); font-size: 15px; font-weight: bold; }
-  .menu { all: unset; cursor: pointer; margin-right: 12px; color: var(--mauve); display: inline-flex; }
+  .chat-header { display: flex; align-items: center; height: 56px; padding: 0 24px; border-bottom: 1px solid var(--surface0); color: var(--text); font-size: 15px; font-weight: bold; }
+  .menu { all: unset; cursor: pointer; margin-right: 12px; color: var(--accent); display: inline-flex; }
   .title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .admin-toggle { margin-left: auto; display: flex; align-items: center; gap: 8px; background: var(--surface0); padding: 4px 10px; border-radius: 6px; border: 1px solid var(--surface1); cursor: pointer; flex-shrink: 0; }
+  .admin-toggle { margin-left: auto; display: flex; align-items: center; gap: 8px; background: var(--surface0); padding: 4px 10px; border-radius: var(--r-xs); border: 1px solid var(--surface1); cursor: pointer; flex-shrink: 0; }
   .toggle-text { font-size: 10px; letter-spacing: 0.05em; color: var(--overlay1); }
   .admin-toggle input:checked ~ .toggle-text { color: var(--red); }
 </style>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { tick, untrack } from 'svelte';
+  import { appearance } from '../../state/appearance.svelte';
   import { auth } from '../../state/auth.svelte';
   import { messages } from '../../state/messages.svelte';
   import MessageItem from './MessageItem.svelte';
@@ -66,13 +67,15 @@
 <div class="messages" bind:this={el} {onscroll} onclick={toggleSpoiler}>
   {#if meta?.loading}<div class="loading-status">loading history...</div>{/if}
 
-  {#each list as m (m.id)}
+  {#each list as m, i (m.id)}
     {@const parent = m.reply_to != null ? byId.get(m.reply_to) : undefined}
-    <MessageItem {m} {parent} />
+    {@const prev = i > 0 ? list[i - 1] : undefined}
+    {@const grouped = !!appearance.groupConsecutiveMessages && !!prev && prev.author === m.author && m.author !== 'SYSTEM' && m.reply_to == null}
+    <MessageItem {m} {parent} {grouped} />
   {/each}
 </div>
 
 <style>
   .messages { flex: 1; overflow-y: auto; padding: 20px 0 calc(20px + env(safe-area-inset-bottom, 0px)); display: flex; flex-direction: column; overscroll-behavior: contain; }
-  .loading-status { text-align: center; font-size: 11px; color: var(--mauve); padding: 10px; opacity: 0.8; }
+  .loading-status { text-align: center; font-size: 11px; color: var(--accent); padding: 10px; opacity: 0.8; }
 </style>

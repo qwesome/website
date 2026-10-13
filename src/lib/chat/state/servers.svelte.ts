@@ -1,5 +1,4 @@
 import { fetchServers } from '../api/servers';
-import { appearance } from './appearance.svelte';
 import { auth } from './auth.svelte';
 import { messages } from './messages.svelte';
 import type { Server, ServerChannel } from '../types';
@@ -44,16 +43,6 @@ class Servers {
     }
   }
 
-  /** Servers the user should actually see (global server hidden when disabled). */
-  get visible(): Server[] {
-    if (appearance.showGlobalServer) return this.list;
-    return this.list.filter((s) => s.is_default !== 1);
-  }
-
-  get global(): Server | undefined {
-    return this.list.find((s) => s.is_default === 1);
-  }
-
   serverOf(serverId: number): Server | undefined {
     return this.list.find((s) => s.id === serverId);
   }
@@ -66,9 +55,9 @@ class Servers {
     return undefined;
   }
 
-  /** Fallback landing channel: the global server's #general, else the first channel available. */
+  /** Fallback landing channel: the first channel of the first server. */
   defaultChannel(): { server: Server; channel: ServerChannel } | undefined {
-    for (const server of this.visible) {
+    for (const server of this.list) {
       if (server.channels.length > 0) return { server, channel: server.channels[0] };
     }
     return undefined;
@@ -86,9 +75,7 @@ class Servers {
       return;
     }
     this.list.push(server);
-    this.list.sort(
-      (a, b) => (b.is_default ?? 0) - (a.is_default ?? 0) || a.id - b.id
-    );
+    this.list.sort((a, b) => a.id - b.id);
     this.persistLocal();
   }
 
@@ -96,8 +83,7 @@ class Servers {
     this.restoreLocal();
     try {
       const servers = await fetchServers();
-      // Global (default) server first, then by id, so the landing channel is stable.
-      this.list = [...servers].sort((a, b) => (b.is_default ?? 0) - (a.is_default ?? 0) || a.id - b.id);
+      this.list = [...servers].sort((a, b) => a.id - b.id);
       this.persistLocal();
     } catch (e) {
       console.error(e);

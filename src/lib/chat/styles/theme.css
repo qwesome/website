@@ -9,13 +9,34 @@
   --overlay1: #8087a2;
   --subtext0: #a5adcb;
   --text: #cad3f5;
-  --lavender: #b7bdf8;
-  --blue: #8aadf4;
+  --rosewater: #f4dbd6;
+  --flamingo: #f0c6c6;
+  --pink: #f5bde6;
   --mauve: #c6a0f6;
-  --green: #a6da95;
-  --teal: #8bd5ca;
   --red: #ed8796;
+  --maroon: #ee99a0;
   --peach: #f5a97f;
   --yellow: #eed49f;
-  --pink: #f5bde6;
+  --green: #a6da95;
+  --teal: #8bd5ca;
+  --sky: #91d7e3;
+  --sapphire: #7dc4e4;
+  --blue: #8aadf4;
+  --lavender: #b7bdf8;
+
+  /* Design language tokens shared across every component. */
+  --r-xs: 6px;
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 16px;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --dur: 0.15s;
+  --shadow-menu: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --hoverTint: rgba(255, 255, 255, 0.05);
+  --cardShadow: rgba(0, 0, 0, 0.35);
+
+  /* Defaults so paint is correct before the theme is applied to the DOM. */
+  --accent: var(--mauve);
+  --accent-hover: var(--mauve);
+  --on-accent: var(--crust);
 }

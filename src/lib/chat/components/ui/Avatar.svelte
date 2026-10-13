@@ -18,6 +18,6 @@
 </div>
 
 <style>
-  .avatar { border-radius: 6px; background: var(--surface0); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: var(--mauve); flex-shrink: 0; overflow: hidden; }
+  .avatar { border-radius: var(--r-xs, 6px); background: var(--surface1); display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: bold; color: var(--accent); flex-shrink: 0; overflow: hidden; }
   img { width: 100%; height: 100%; object-fit: cover; display: block; }
 </style>

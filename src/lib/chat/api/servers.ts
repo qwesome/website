@@ -22,6 +22,14 @@ export const updateServer = async (serverId: number, patch: { name?: string; ava
   return res.server;
 };
 
+export const deleteServer = async (serverId: number) => {
+  await api<{ message: string }>(`/api/servers/${serverId}`, { method: 'DELETE' });
+};
+
+export const leaveServer = async (serverId: number) => {
+  await api<{ message: string }>(`/api/servers/${serverId}/leave`, { method: 'DELETE' });
+};
+
 export const fetchServerMembers = async (serverId: number) =>
   (await api<{ members: string[] }>(`/api/servers/${serverId}/members`)).members;
 

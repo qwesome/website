@@ -46,10 +46,23 @@
   <link rel="icon" type="image/png" href={unread.any ? '/chat-favicon-notif.png' : '/chat-favicon.png'} />
 </svelte:head>
 
-<div class="chat-root" bind:this={root} use:swipeSidebar>
+<div class="chat-root" class:reduce-motion={appearance.reduceMotion} bind:this={root} use:swipeSidebar>
   {#if auth.ready}
     {@render children()}
   {:else}
     <ChatSkeleton />
   {/if}
 </div>
+
+<style>
+  /* When reduce motion is on, neutralise every transition/animation in the app,
+     including modals and context menus rendered as descendants of the root. */
+  .chat-root.reduce-motion :global(*),
+  .chat-root.reduce-motion :global(*::before),
+  .chat-root.reduce-motion :global(*::after) {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+</style>

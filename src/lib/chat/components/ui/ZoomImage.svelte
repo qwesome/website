@@ -10,5 +10,5 @@
 <style>
   .zoom { all: unset; display: block; cursor: pointer; max-width: fit-content; }
   img { max-width: 320px; max-height: 240px; border-radius: 6px; display: block; border: 1px solid var(--surface0); }
-  .zoom:hover img { border-color: var(--mauve); }
+  .zoom:hover img { border-color: var(--accent); }
 </style>

@@ -16,3 +16,6 @@ export const respondFriend = async (username: string, accept: boolean) => {
 export const removeFriend = async (username: string) => {
   await api(`/api/friends/${encodeURIComponent(username)}`, { method: 'DELETE' });
 };
+
+export const searchUsers = async (q: string) =>
+  await api<{ users: string[] }>(`/api/users/search?q=${encodeURIComponent(q)}`).then((r) => r.users);

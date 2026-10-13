@@ -1,34 +1,78 @@
 <script lang="ts">
-import { fetchServerMembers, kickMember, updateServer } from '../../api/servers';
+import { goto } from '$app/navigation';
+import { fetchServerMembers, kickMember, updateServer, deleteServer } from '../../api/servers';
 import { servers } from '../../state/servers.svelte';
 import { auth } from '../../state/auth.svelte';
+import { ui } from '../../state/ui.svelte';
+import { toast } from '../../state/toasts.svelte';
 import type { Server } from '../../types';
 import Icon from '../ui/Icon.svelte';
 import Avatar from '../ui/Avatar.svelte';
 import ConfirmButton from '../ui/ConfirmButton.svelte';
+import InviteFriend from './InviteFriend.svelte';
 
 let {
   server,
   open = $bindable(false)
 }: { server: Server; open: boolean } = $props();
 
-let iconInput = $state<HTMLInputElement>();
 let members = $state<string[]>([]);
 let error = $state('');
 let busy = $state(false);
 let copied = $state(false);
 let copyTimer: ReturnType<typeof setTimeout> | undefined;
+let nameInput = $state('');
+let deleteConfirm = $state('');
+let deleting = $state(false);
 
 const me = $derived(auth.user ?? '');
 const isPublic = $derived(Boolean(server.is_public));
+const canDelete = $derived(server.owner === me);
 
   $effect(() => {
     if (open) {
       error = '';
       members = [];
+      nameInput = server.name;
+      deleteConfirm = '';
       loadMembers();
     }
   });
+
+  async function renameServer() {
+    const name = nameInput.trim();
+    if (busy || !name || name === server.name) return;
+    busy = true;
+    error = '';
+    try {
+      const updated = await updateServer(server.id, { name });
+      servers.applyUpdated(updated);
+      toast('Server renamed', 'success');
+    } catch (e) {
+      error = e instanceof Error ? e.message : 'failed to rename server';
+      toast('Failed to rename server', 'error');
+    } finally {
+      busy = false;
+    }
+  }
+
+  async function confirmDelete() {
+    if (deleteConfirm.trim() !== 'delete this server' || deleting) return;
+    deleting = true;
+    error = '';
+    try {
+      await deleteServer(server.id);
+      servers.removeServer(server.id);
+      toast(`Deleted ${server.name}`);
+      open = false;
+      void goto('/chat?home=1');
+    } catch (e) {
+      error = e instanceof Error ? e.message : 'failed to delete server';
+      toast('Failed to delete server', 'error');
+    } finally {
+      deleting = false;
+    }
+  }
 
   async function loadMembers() {
     try {
@@ -53,29 +97,28 @@ const isPublic = $derived(Boolean(server.is_public));
     }
   }
 
-  async function setIcon(file: File | undefined | null) {
-    if (!file) return;
-    if (!file.type.startsWith('image/')) return;
-    if (file.size > 1_000_000) {
-      error = 'icon too large (max 1MB)';
-      return;
-    }
-    error = '';
-    busy = true;
-    try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(String(reader.result));
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
-      const updated = await updateServer(server.id, { avatar: dataUrl });
-      servers.applyUpdated(updated);
-    } catch (e) {
-      error = e instanceof Error ? e.message : 'failed to update icon';
-    } finally {
-      busy = false;
-    }
+  function changeIcon() {
+    if (busy) return;
+    ui.pickImage({
+      title: 'change server icon',
+      name: server.name,
+      value: server.avatar,
+      shape: 'circle',
+      maxDim: 512,
+      onpick: async (value) => {
+        busy = true;
+        error = '';
+        try {
+          const updated = await updateServer(server.id, { avatar: value });
+          servers.applyUpdated(updated);
+          toast('Server icon updated', 'success');
+        } catch (e) {
+          error = e instanceof Error ? e.message : 'failed to update icon';
+        } finally {
+          busy = false;
+        }
+      }
+    });
   }
 
   async function removeIcon() {
@@ -158,12 +201,30 @@ const isPublic = $derived(Boolean(server.is_public));
             <span class="srv-glyph">{initials(server.name)}</span>
           {/if}
           <div class="icon-actions">
-            <button type="button" class="btn" disabled={busy} onclick={() => iconInput?.click()}>change icon</button>
+            <button type="button" class="btn" disabled={busy} onclick={changeIcon}>change icon</button>
             {#if server.avatar}
               <button type="button" class="btn danger" disabled={busy} onclick={removeIcon}>remove icon</button>
             {/if}
           </div>
-          <input type="file" accept="image/*" hidden bind:this={iconInput} onchange={(e) => setIcon((e.currentTarget as HTMLInputElement).files?.[0])} />
+        </div>
+
+        <div class="setting">
+          <div class="setting-info">
+            <span class="setting-label">server name</span>
+            <span class="setting-note">shown in the sidebar and server list</span>
+          </div>
+        </div>
+        <div class="name-row">
+          <input
+            type="text"
+            bind:value={nameInput}
+            maxlength="32"
+            spellcheck="false"
+            onkeydown={(e) => e.key === 'Enter' && renameServer()}
+          />
+          <button type="button" class="btn" disabled={busy || !nameInput.trim() || nameInput.trim() === server.name} onclick={renameServer}>
+            save
+          </button>
         </div>
 
         <div class="setting">
@@ -191,6 +252,7 @@ const isPublic = $derived(Boolean(server.is_public));
               <span class="code">{server.code}</span>
               <button type="button" class="btn" onclick={copyCode}>{copied ? 'copied!' : 'copy'}</button>
             </div>
+            <InviteFriend {server} />
           </div>
         {/if}
 
@@ -225,6 +287,32 @@ const isPublic = $derived(Boolean(server.is_public));
           {/each}
         </div>
 
+        {#if canDelete}
+          <div class="danger">
+            <span class="setting-label danger-label">danger zone</span>
+            <p class="danger-note">
+              Deleting this server removes all of its channels and messages permanently. This can't be undone.
+            </p>
+            <div class="name-row">
+              <input
+                type="text"
+                bind:value={deleteConfirm}
+                placeholder='type "delete this server"'
+                spellcheck="false"
+                autocomplete="off"
+              />
+              <button
+                type="button"
+                class="btn danger"
+                disabled={deleting || deleteConfirm.trim() !== 'delete this server'}
+                onclick={confirmDelete}
+              >
+                {deleting ? '...' : 'delete'}
+              </button>
+            </div>
+          </div>
+        {/if}
+
         {#if error}<p class="error">{error}</p>{/if}
       </div>
     </div>
@@ -242,13 +330,13 @@ const isPublic = $derived(Boolean(server.is_public));
 
   .icon-row { display: flex; align-items: center; gap: 12px; }
   .srv-ico { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
-  .srv-glyph { width: 48px; height: 48px; border-radius: 50%; background: var(--surface0); color: var(--mauve); font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .srv-glyph { width: 48px; height: 48px; border-radius: 50%; background: var(--surface0); color: var(--accent); font-size: 13px; font-weight: 800; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .icon-actions { display: flex; gap: 6px; flex-wrap: wrap; }
   .btn { all: unset; cursor: pointer; background: var(--surface0); color: var(--text); font-size: 11px; padding: 5px 10px; border-radius: 4px; }
   .btn:hover { background: var(--surface1); }
   .btn:disabled { opacity: 0.5; cursor: default; }
   .btn.danger { color: var(--red); }
-  .btn.danger:hover { background: rgba(237, 135, 150, 0.1); }
+  .btn.danger:hover { background: color-mix(in srgb, var(--red) 10%, transparent); }
 
   .setting { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
   .setting-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
@@ -262,7 +350,7 @@ const isPublic = $derived(Boolean(server.is_public));
 
   .invite { display: flex; flex-direction: column; gap: 6px; }
   .invite-code { display: flex; align-items: center; justify-content: space-between; gap: 8px; background: var(--base); border: 1px solid var(--surface0); border-radius: 5px; padding: 8px 10px; }
-  .code { font-size: 15px; font-weight: 800; letter-spacing: 0.15em; color: var(--mauve); user-select: all; }
+  .code { font-size: 15px; font-weight: 800; letter-spacing: 0.15em; color: var(--accent); user-select: all; }
 
   .members-head { display: flex; align-items: center; justify-content: space-between; }
   .mini-btn { all: unset; color: var(--overlay0); cursor: pointer; display: inline-flex; }
@@ -276,6 +364,14 @@ const isPublic = $derived(Boolean(server.is_public));
   .kick :global(.confirm-btn:hover) { color: var(--red); }
   .owner-tag { font-size: 9px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--yellow); }
   .empty { margin: 0; color: var(--overlay0); font-size: 12px; }
+
+  .name-row { display: flex; gap: 8px; }
+  .name-row input { flex: 1; min-width: 0; background: var(--base); border: 1px solid var(--surface0); color: var(--text); font-family: inherit; font-size: 13px; padding: 8px 10px; border-radius: 5px; }
+  .name-row input:focus { outline: none; border-color: var(--accent); }
+
+  .danger { display: flex; flex-direction: column; gap: 8px; border: 1px solid color-mix(in srgb, var(--red) 40%, transparent); border-radius: 6px; padding: 12px; }
+  .danger-label { color: var(--red); text-transform: uppercase; letter-spacing: 0.08em; font-size: 10px; }
+  .danger-note { margin: 0; font-size: 11px; color: var(--overlay0); line-height: 1.5; }
 
   .error { color: var(--red); font-size: 11px; margin: 0; }
 </style>

@@ -28,10 +28,10 @@
 <style>
   .image-embed { margin-top: 8px; }
   .embed-card { display: flex; flex-direction: column; margin-top: 8px; border-left: 4px solid var(--surface2); background: var(--crust); border-radius: 4px; overflow: hidden; max-width: 400px; text-decoration: none; color: inherit; transition: border-color 0.2s; }
-  .embed-card:hover { border-color: var(--mauve); }
+  .embed-card:hover { border-color: var(--accent); }
   .embed-image { width: 100%; max-height: 200px; object-fit: cover; display: block; }
   .embed-info { padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
-  .embed-site { font-size: 11px; color: var(--mauve); font-weight: bold; text-transform: uppercase; }
+  .embed-site { font-size: 11px; color: var(--accent); font-weight: bold; text-transform: uppercase; }
   .embed-title { font-size: 14px; color: var(--blue); font-weight: bold; }
   .embed-desc { font-size: 12px; color: var(--subtext0); display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
 </style>

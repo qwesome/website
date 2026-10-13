@@ -11,6 +11,7 @@ export function chatFromUrl(url: URL, me: string): ChatTarget {
   if (dm) return { type: 'dm', id: dmId(me, dm), name: dm };
 
   if (url.searchParams.get('c') === 'admin-panel') return { type: 'admin', id: 'admin-panel' };
+  if (url.searchParams.get('c') === 'friends') return { type: 'friends', id: 'friends' };
 
   const s = Number(url.searchParams.get('s'));
   const ch = Number(url.searchParams.get('ch'));
@@ -24,8 +25,8 @@ export function chatFromUrl(url: URL, me: string): ChatTarget {
 export const channelHref = (serverId: number, channelId: number) =>
   `?s=${serverId}&ch=${channelId}`;
 export const adminHref = () => `?c=admin-panel`;
+export const friendsHref = () => `?c=friends`;
 export const dmHref = (user: string) => `?dm=${encodeURIComponent(user)}`;
 
-// Marked so the layout doesn't bounce a plain `/chat` visit straight into the
-// default channel — the user explicitly asked for the home/DM view.
-export const homeHref = () => `/chat?home=1`;
+// The Home / top-left button lands on the friends page by default.
+export const homeHref = () => `/chat?c=friends`;

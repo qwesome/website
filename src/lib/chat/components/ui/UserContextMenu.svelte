@@ -1,108 +1,93 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { requestFriend, respondFriend, removeFriend } from '../../api/friends';
-  import { kickMember } from '../../api/servers';
-  import { auth } from '../../state/auth.svelte';
-  import { friends } from '../../state/friends.svelte';
-  import { servers } from '../../state/servers.svelte';
   import { ui } from '../../state/ui.svelte';
-  import { dmHref } from '../../utils/route';
   import { clickOutside } from '../../actions/clickOutside';
   import Icon from './Icon.svelte';
 
-  const me = $derived(auth.user ?? '');
-  const target = $derived(ui.contextMenu);
+  const menu = $derived(ui.menu);
 
-  const isMe = $derived(target ? target.user === me : false);
-  const isFriend = $derived(target ? friends.isFriend(target.user) : false);
-  const isOutgoing = $derived(target ? friends.hasOutgoingTo(target.user) : false);
-  const isIncoming = $derived(target ? friends.hasRequestFrom(target.user) : false);
-
-  const left = $derived(target ? Math.min(target.x, Math.max(8, window.innerWidth - 190)) : 0);
-  const top = $derived(target ? Math.min(target.y, Math.max(8, window.innerHeight - 200)) : 0);
-
-  // In a server we own, allow kicking the context-menu user.
-  const kickServer = $derived.by(() => {
-    if (!target) return null;
-    const id = Number(ui.activeChannel);
-    if (!Number.isInteger(id) || id <= 0) return null;
-    const cur = servers.channelOf(id);
-    if (!cur || cur.server.owner !== me) return null;
-    if (target.user === me || target.user === cur.server.owner) return null;
-    return cur.server;
-  });
-
-  async function run(fn: () => Promise<unknown>) {
-    const user = target?.user;
-    close();
-    if (!user) return;
-    try {
-      await fn();
-    } catch (e) {
-      console.error(e);
-    }
-  }
+  const left = $derived(menu ? Math.min(menu.x, Math.max(8, window.innerWidth - 220)) : 0);
+  const top = $derived(menu ? Math.min(menu.y, Math.max(8, window.innerHeight - 360)) : 0);
 
   function close() {
-    ui.closeContextMenu();
+    ui.closeMenu();
   }
 
-  function copyUsername(name: string) {
-    navigator.clipboard?.writeText(name).catch(() => {});
+  function pick(item: NonNullable<typeof menu>['items'][number]) {
+    if (item.disabled) return;
     close();
-  }
-
-  function message(user: string) {
-    close();
-    goto(dmHref(user));
+    item.action?.();
   }
 </script>
 
-{#if target}
+<svelte:window onkeydown={(e) => e.key === 'Escape' && close()} />
+
+{#if menu}
   <div
     class="menu"
     style="left: {left}px; top: {top}px"
     role="menu"
     use:clickOutside={{ onoutside: close }}
   >
-    <button type="button" class="item" onclick={() => ui.showProfile(target.user)}>
-      <Icon name="user" size={14} /> View profile
-    </button>
-    {#if !isMe}
-      <button type="button" class="item" onclick={() => message(target.user)}>Send message</button>
-    {/if}
-    <button type="button" class="item" onclick={() => copyUsername(target.user)}>Copy username</button>
-
-    {#if !isMe}
-      <div class="sep"></div>
-      {#if isFriend}
-        <button type="button" class="item danger" onclick={() => run(() => removeFriend(target.user))}>
-          Remove friend
-        </button>
-      {:else if isOutgoing}
-        <button type="button" class="item" onclick={() => run(() => removeFriend(target.user))}>
-          Cancel friend request
-        </button>
-      {:else if isIncoming}
-        <button type="button" class="item" onclick={() => run(() => respondFriend(target.user, true))}>
-          Accept friend request
-        </button>
+    {#each menu.items as item, i (i)}
+      {#if item.separator}
+        <div class="sep"></div>
       {:else}
-        <button type="button" class="item" onclick={() => run(() => requestFriend(target.user))}>
-          Add friend
+        <button
+          type="button"
+          class="item"
+          class:danger={item.danger}
+          disabled={item.disabled}
+          onclick={() => pick(item)}
+        >
+          <span class="ic"><Icon name={item.icon ?? 'menu'} size={14} /></span>
+          <span class="label">{item.label}</span>
         </button>
       {/if}
-    {/if}
+    {/each}
   </div>
 {/if}
 
-<svelte:window onkeydown={(e) => e.key === 'Escape' && close()} />
-
 <style>
-  .menu { position: fixed; z-index: 20000; min-width: 180px; background: var(--mantle); border: 1px solid var(--surface1); border-radius: 8px; padding: 5px; box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; }
-  .item { all: unset; display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 5px; color: var(--subtext0); font-size: 13px; cursor: pointer; font-family: 'JetBrains Mono', monospace; }
-  .item:hover { background: var(--surface0); color: var(--text); }
+  .menu {
+    position: fixed;
+    z-index: 20000;
+    min-width: 190px;
+    max-width: 260px;
+    background: var(--mantle);
+    border: 1px solid var(--surface1);
+    border-radius: var(--r-sm);
+    padding: 5px;
+    box-shadow: var(--shadow-menu);
+    display: flex;
+    flex-direction: column;
+    animation: menu-in 0.12s ease-out;
+  }
+  @keyframes menu-in {
+    from { opacity: 0; transform: translateY(-4px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .item {
+    all: unset;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 9px;
+    border-radius: var(--r-sm, 5px);
+    color: var(--subtext0);
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    transition: background 0.12s, color 0.12s, padding-left 0.12s;
+  }
+  .item:hover:not(:disabled) {
+    background: var(--surface0);
+    color: var(--text);
+    padding-left: 12px;
+  }
+  .item:disabled { opacity: 0.4; cursor: default; }
+  .ic { display: inline-flex; width: 16px; justify-content: center; opacity: 0.85; flex-shrink: 0; }
+  .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .item.danger { color: var(--red); }
-  .item.danger:hover { background: rgba(237, 135, 150, 0.1); }
+  .item.danger:hover:not(:disabled) { background: color-mix(in srgb, var(--red) 12%, transparent); }
   .sep { height: 1px; background: var(--surface0); margin: 4px 6px; }
 </style>

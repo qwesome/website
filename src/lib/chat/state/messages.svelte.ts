@@ -8,14 +8,32 @@ const adminGuide = (): Message => ({
   author: 'SYSTEM',
   ts: Date.now(),
   text: [
-    '### Admin Command Key',
-    '* `list users` - Show all registered accounts',
-    '* `count messages [channel]` - Total counts',
-    '* `delete [num] [channel]` - Remove N messages',
-    '* `delete all` - Wipe entire database',
-    '* `deleteuser [username]` - Wipe account',
-    '* `testpass [user] [pass]` - Verify credentials',
-    '* `removepfp [username]` - Reset user avatar'
+    '**admin command key**',
+    '',
+    '*read*',
+    '`list users` · `list admins` · `list servers` · `list channels [serverId]`',
+    '`list members [serverId]` · `list dms` · `online`',
+    '`count messages [channel]`',
+    '',
+    '*users*',
+    '`adduser [user] [pass]` · `deleteuser [user]` · `rename user [old] [new]`',
+    '`set admin [user] [on|off]` · `set pass [user] [pass]` · `testpass [user] [pass]`',
+    '`set avatar [user] [imageUrl|none]` · `removepfp [user]`',
+    '`set status [user] [online|away|offline]`',
+    '',
+    '*servers & channels*',
+    '`create server [name]` · `create channel [serverId] [name]`',
+    '`rename server [serverId] [name]` · `rename channel [channelId] [name]`',
+    '`set owner [serverId] [user]` · `set public [serverId] [on|off]`',
+    '`set servericon [serverId] [imageUrl|none]`',
+    '`add member [serverId] [user]` · `kick member [serverId] [user]`',
+    '`delete server [serverId]` · `delete channel [channelId]`',
+    '',
+    '*messages*',
+    '`delete [num] [channel]` · `delete all` · `delete servers`',
+    '`delete message [id]` · `edit message [id] [text]` · `clear channel [channel]`',
+    '`purge user [user]`',
+    '`say [channel] [text]` · `broadcast [text]`'
   ].join('\n')
 });
 
@@ -66,6 +84,13 @@ class MessageStore {
     if (m) {
       m.text = text;
       m.edited = 1;
+    }
+  }
+
+  /** Removes every cached message authored by `author` (admin purge). */
+  purgeAuthor(author: string) {
+    for (const key of Object.keys(this.byChannel)) {
+      this.byChannel[key] = this.byChannel[key].filter((m) => m.author !== author);
     }
   }
 

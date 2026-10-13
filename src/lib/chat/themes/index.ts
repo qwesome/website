@@ -1,5 +1,5 @@
 import type { ThemeDefinition, AccentColor } from './types';
-import { readableOn } from '../utils/color';
+import { ensureLegible, readableOn } from '../utils/color';
 
 // Official Catppuccin 14 Accent Colors
 export const CATPPUCCIN_ACCENTS: Record<'latte' | 'frappe' | 'macchiato' | 'mocha', AccentColor[]> = {
@@ -217,8 +217,47 @@ export function resolveThemeTokens(theme: ThemeDefinition, accentChoice?: string
   const accentHex = resolveAccentHex(theme, accentChoice);
   const onAccentHex = readableOn(accentHex);
 
+  const t = theme.tokens;
+  const accentMap = Object.fromEntries(theme.accents.map((a) => [a.id, a.value]));
+  const base = t.base;
+
+  // Extended palette keys that older themes never defined. Pull real values from
+  // the theme's own accent list where possible, otherwise infer a close colour,
+  // then nudge each one until it is legible on this theme's background.
+  const hints: Record<string, string> = {
+    rosewater: t.pink,
+    flamingo: t.pink,
+    mauve: accentHex,
+    maroon: t.red,
+    peach: t.yellow,
+    teal: t.green,
+    sky: t.blue,
+    sapphire: t.blue,
+    lavender: t.blue
+  };
+  const palette: Record<string, string> = {
+    rosewater: t.rosewater ?? accentMap.rosewater ?? hints.rosewater,
+    flamingo: t.flamingo ?? accentMap.flamingo ?? hints.flamingo,
+    pink: t.pink,
+    mauve: t.mauve ?? accentMap.mauve ?? hints.mauve,
+    red: t.red,
+    maroon: t.maroon ?? accentMap.maroon ?? hints.maroon,
+    peach: t.peach ?? accentMap.peach ?? hints.peach,
+    yellow: t.yellow,
+    green: t.green,
+    teal: t.teal ?? accentMap.teal ?? hints.teal,
+    sky: t.sky ?? accentMap.sky ?? hints.sky,
+    sapphire: t.sapphire ?? accentMap.sapphire ?? hints.sapphire,
+    blue: t.blue,
+    lavender: t.lavender ?? accentMap.lavender ?? hints.lavender
+  };
+  for (const key of Object.keys(palette)) {
+    palette[key] = ensureLegible(palette[key], base, 3);
+  }
+
   return {
     ...theme.tokens,
+    ...palette,
     accent: accentHex,
     'accent-hover': accentHex + 'dd',
     'on-accent': onAccentHex

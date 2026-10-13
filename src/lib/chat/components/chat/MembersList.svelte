@@ -5,6 +5,7 @@
   import { servers } from '../../state/servers.svelte';
   import { ui } from '../../state/ui.svelte';
   import { auth } from '../../state/auth.svelte';
+  import { userMenu } from '../../utils/menus';
   import type { Status } from '../../types';
   import Avatar from '../ui/Avatar.svelte';
 
@@ -25,22 +26,29 @@
       .sort((a, b) => a.localeCompare(b))
   );
 
+  let loadVersion = 0;
+
   // Refetch when the server changes or membership changes (kicks, joins).
   $effect(() => {
-    void serverId;
+    const id = serverId;
     void servers.memberVersion;
-    load(serverId);
+    const version = ++loadVersion;
+    void load(id, version);
+    return () => {
+      if (loadVersion === version) loadVersion++;
+    };
   });
 
-  async function load(id: number) {
+  async function load(id: number, version: number) {
     try {
       const list = await fetchServerMembers(id);
+      if (version !== loadVersion) return;
       members = list;
       avatars.ensureAll(list);
     } catch (e) {
-      console.error(e);
+      if (version === loadVersion) console.error(e);
     } finally {
-      loaded = true;
+      if (version === loadVersion) loaded = true;
     }
   }
 
@@ -48,15 +56,14 @@
     return ({ online: 'Online', away: 'Away', offline: 'Offline' } as Record<Status, string>)[status];
   }
 
-  function openProfile(user: string) {
-    if (user !== me) ui.showProfile(user);
+  function openProfile(e: MouseEvent, user: string) {
+    ui.showProfile(user, e.clientX, e.clientY);
   }
 
   function onContextMenu(e: MouseEvent, user: string) {
-    if (user === me) return;
     if ((window.getSelection()?.toString() ?? '').length > 0) return;
     e.preventDefault();
-    ui.openContextMenu(e.clientX, e.clientY, user);
+    ui.openMenu(e.clientX, e.clientY, userMenu(user));
   }
 </script>
 
@@ -66,12 +73,20 @@
     {#if online.length > 0}
       <div class="group-label">online — {online.length}</div>
       {#each online as u (u)}
-        <button type="button" class="member" onclick={() => openProfile(u)} oncontextmenu={(e) => onContextMenu(e, u)}>
+        <button type="button" class="member" onclick={(e) => openProfile(e, u)} oncontextmenu={(e) => onContextMenu(e, u)}>
           <span class="pfp">
             <Avatar name={u} size={30} />
             <span class="dot {presence.statusOf(u)}" title={statusLabel(presence.statusOf(u))}></span>
           </span>
-          <span class="name" class:me={u === me}>{u}</span>
+          <span class="who">
+            <span class="name" class:me={u === me}>{u}</span>
+            {#if presence.customOf(u) && (presence.customOf(u)!.emoji || presence.customOf(u)!.text)}
+              <span class="sub" title={[presence.customOf(u)!.emoji, presence.customOf(u)!.text].filter(Boolean).join(' ')}>
+                {#if presence.customOf(u)!.emoji}<span>{presence.customOf(u)!.emoji}</span>{/if}
+                {#if presence.customOf(u)!.text}<span class="sub-text">{presence.customOf(u)!.text}</span>{/if}
+              </span>
+            {/if}
+          </span>
         </button>
       {/each}
     {/if}
@@ -79,7 +94,7 @@
     {#if offline.length > 0}
       <div class="group-label">offline — {offline.length}</div>
       {#each offline as u (u)}
-        <button type="button" class="member offline" onclick={() => openProfile(u)} oncontextmenu={(e) => onContextMenu(e, u)}>
+        <button type="button" class="member offline" onclick={(e) => openProfile(e, u)} oncontextmenu={(e) => onContextMenu(e, u)}>
           <span class="pfp">
             <Avatar name={u} size={30} />
             <span class="dot offline"></span>
@@ -110,7 +125,11 @@
   .dot.away { background: var(--yellow); }
   .dot.offline { background: var(--surface2); }
   .name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; }
-  .name.me { color: var(--mauve); font-weight: 700; }
+  .who { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+  .who .name { flex: none; }
+  .sub { display: flex; align-items: center; gap: 4px; font-size: 11px; color: var(--overlay0); min-width: 0; }
+  .sub-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .name.me { color: var(--accent); font-weight: 700; }
   .empty { color: var(--overlay0); font-size: 12px; padding: 8px; margin: 0; }
   @media (max-width: 768px) {
     .members { display: none; }

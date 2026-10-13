@@ -2,11 +2,13 @@
   import { page } from '$app/state';
   import { auth } from '$lib/chat/state/auth.svelte';
   import { servers } from '$lib/chat/state/servers.svelte';
+  import { appearance } from '$lib/chat/state/appearance.svelte';
   import { chatFromUrl } from '$lib/chat/utils/route';
   import ChatHeader from '$lib/chat/components/chat/ChatHeader.svelte';
   import MessageList from '$lib/chat/components/chat/MessageList.svelte';
   import MessageInput from '$lib/chat/components/chat/MessageInput.svelte';
   import MembersList from '$lib/chat/components/chat/MembersList.svelte';
+  import FriendsView from '$lib/chat/components/friends/FriendsView.svelte';
 
   const current = $derived(chatFromUrl(page.url, auth.user ?? ''));
 
@@ -40,6 +42,8 @@
       <p>Pick a channel on the left, or create or join a server using the + button.</p>
     </div>
   </div>
+{:else if current.type === 'friends'}
+  <FriendsView />
 {:else}
   <div class="viewport">
     <div class="main">
@@ -47,7 +51,7 @@
       <MessageList channel={current.id} />
       <MessageInput channel={current.id} {placeholder} />
     </div>
-    {#if current.type === 'server'}
+    {#if current.type === 'server' && appearance.showMembersList}
       <MembersList serverId={current.serverId} />
     {/if}
   </div>

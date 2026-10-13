@@ -50,8 +50,8 @@
   .confirm-btn:hover { color: var(--red); }
   .armed { color: var(--red); animation: pulse-red 0.8s infinite; }
   @keyframes pulse-red {
-    0% { filter: drop-shadow(0 0 0 rgba(237, 135, 150, 0)); }
-    50% { filter: drop-shadow(0 0 4px rgba(237, 135, 150, 0.8)); }
-    100% { filter: drop-shadow(0 0 0 rgba(237, 135, 150, 0)); }
+    0% { filter: drop-shadow(0 0 0 color-mix(in srgb, var(--red) 0%, transparent)); }
+    50% { filter: drop-shadow(0 0 4px color-mix(in srgb, var(--red) 80%, transparent)); }
+    100% { filter: drop-shadow(0 0 0 color-mix(in srgb, var(--red) 0%, transparent)); }
   }
 </style>
